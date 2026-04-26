@@ -5,9 +5,10 @@ import { PlayerShotRecord } from '../types';
 
 interface ShotTimerProps {
   onRecordAdded: (record: PlayerShotRecord) => void;
+  records: PlayerShotRecord[];
 }
 
-export default function ShotTimer({ onRecordAdded }: ShotTimerProps) {
+export default function ShotTimer({ onRecordAdded, records }: ShotTimerProps) {
   const [hole, setHole] = useState('1');
   const [group, setGroup] = useState('1');
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
@@ -137,19 +138,41 @@ export default function ShotTimer({ onRecordAdded }: ShotTimerProps) {
           <User size={14} /> Target Player
         </label>
         <div className="grid grid-cols-2 gap-2">
-          {players.map((p, idx) => (
-            <button
-              key={p}
-              onClick={() => setSelectedPlayer(idx)}
-              className={`p-4 rounded-xl text-left transition-all border ${
-                selectedPlayer === idx 
-                  ? 'bg-[#FFDD00] text-black border-[#FFDD00]' 
-                  : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
-              }`}
-            >
-              <div className="text-sm font-bold">{p}</div>
-            </button>
-          ))}
+          {players.map((p, idx) => {
+            const playerHoleHistory = records.filter(
+              r => r.playerName === p && r.hole === hole && r.group === group
+            );
+
+            return (
+              <button
+                key={p}
+                onClick={() => setSelectedPlayer(idx)}
+                className={`p-4 rounded-xl text-left transition-all border min-h-[80px] flex flex-col justify-between ${
+                  selectedPlayer === idx 
+                    ? 'bg-[#FFDD00] text-black border-[#FFDD00]' 
+                    : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
+                }`}
+              >
+                <div className="text-sm font-bold uppercase tracking-tight">{p}</div>
+                {playerHoleHistory.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {playerHoleHistory.map((rec) => (
+                      <span 
+                        key={rec.id} 
+                        className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
+                          rec.isSlow 
+                            ? (selectedPlayer === idx ? 'bg-red-700 text-white' : 'bg-red-950 text-red-500') 
+                            : (selectedPlayer === idx ? 'bg-zinc-800 text-white' : 'bg-zinc-800 text-gray-400')
+                        }`}
+                      >
+                        {rec.timeTaken.toFixed(0)}s
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 

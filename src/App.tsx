@@ -81,7 +81,7 @@ export default function App() {
       <main className="flex-1 overflow-hidden relative">
         <div className="absolute inset-0 overflow-y-auto">
           {activeTab === 'lost' && <LostBallTimer />}
-          {activeTab === 'shot' && <ShotTimer onRecordAdded={handleRecordAdded} />}
+          {activeTab === 'shot' && <ShotTimer onRecordAdded={handleRecordAdded} records={records} />}
           {activeTab === 'history' && <SessionHistory records={records} onClear={clearHistory} />}
         </div>
       </main>
