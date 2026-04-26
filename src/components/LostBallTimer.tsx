@@ -48,10 +48,10 @@ export default function LostBallTimer() {
       <motion.div 
         initial={false}
         animate={{ 
-          scale: isActive ? 1.05 : 1,
+          scale: isActive ? 1.02 : 1,
           color: isExpired ? '#FF0000' : (timeLeft < 30 ? '#FFDD00' : '#FFFFFF')
         }}
-        className="text-[12rem] font-black leading-none font-mono mb-12 tabular-nums"
+        className="text-[24vw] sm:text-[10rem] font-black leading-none font-mono mb-8 tabular-nums tracking-tighter"
       >
         {formatTime(timeLeft)}
       </motion.div>

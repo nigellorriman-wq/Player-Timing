@@ -53,14 +53,13 @@ export default function App() {
       onTouchStart={handleInteraction}
     >
       {/* Header */}
-      <header className="p-4 pt-10 flex items-center justify-between border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-md z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#FFDD00] text-black rounded-lg flex items-center justify-center shadow-lg">
-            <Timer size={24} strokeWidth={2.5} />
+      <header className="p-2 pt-6 flex items-center justify-between border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-md z-10">
+        <div className="flex items-center gap-1.5">
+          <div className="w-6 h-6 bg-[#FFDD00] text-black rounded flex items-center justify-center shadow-md">
+            <Timer size={14} strokeWidth={3} />
           </div>
           <div>
-            <h1 className="text-xl font-black uppercase tracking-tighter leading-none italic">Player Timing</h1>
-            <span className="text-[10px] font-bold text-[#FFDD00] uppercase tracking-widest">Officiating Tools</span>
+            <h1 className="text-sm font-black uppercase tracking-tighter leading-none italic">Player Timing</h1>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -87,40 +86,40 @@ export default function App() {
       </main>
 
       {/* Navigation Bar */}
-      <nav className="p-4 pb-8 flex items-center justify-around border-t border-zinc-800 bg-zinc-900 bg-opacity-80 backdrop-blur-xl shrink-0">
+      <nav className="px-4 py-2 pb-6 flex items-center justify-around border-t border-zinc-800 bg-zinc-900 bg-opacity-80 backdrop-blur-xl shrink-0">
         <button 
           onClick={() => setActiveTab('lost')}
-          className={`flex flex-col items-center gap-1 transition-all ${
-            activeTab === 'lost' ? 'text-[#FFDD00] scale-110' : 'text-zinc-500'
+          className={`flex flex-col items-center gap-0.5 transition-all ${
+            activeTab === 'lost' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
           }`}
         >
-          <Timer size={24} />
-          <span className="text-[10px] font-bold uppercase tracking-widest">Lost Ball</span>
+          <Timer size={20} />
+          <span className="text-[9px] font-bold uppercase tracking-widest">Lost Ball</span>
         </button>
         <button 
           onClick={() => setActiveTab('shot')}
-          className={`flex flex-col items-center gap-1 transition-all ${
-            activeTab === 'shot' ? 'text-[#FFDD00] scale-110' : 'text-zinc-500'
+          className={`flex flex-col items-center gap-0.5 transition-all ${
+            activeTab === 'shot' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
           }`}
         >
-          <LayoutGrid size={24} />
-          <span className="text-[10px] font-bold uppercase tracking-widest">Shot Clock</span>
+          <LayoutGrid size={20} />
+          <span className="text-[9px] font-bold uppercase tracking-widest">Shot Clock</span>
         </button>
         <button 
           onClick={() => setActiveTab('history')}
-          className={`flex flex-col items-center gap-1 transition-all ${
-            activeTab === 'history' ? 'text-[#FFDD00] scale-110' : 'text-zinc-500'
+          className={`flex flex-col items-center gap-0.5 transition-all ${
+            activeTab === 'history' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
           }`}
         >
           <div className="relative">
-            <History size={24} />
+            <History size={20} />
             {records.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-[8px] font-black text-white flex items-center justify-center rounded-full border-2 border-zinc-900">
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-[7px] font-black text-white flex items-center justify-center rounded-full border border-zinc-900">
                 {records.length}
               </span>
             )}
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-widest">History</span>
+          <span className="text-[9px] font-bold uppercase tracking-widest">History</span>
         </button>
       </nav>
       
@@ -129,12 +128,13 @@ export default function App() {
         body {
           overscroll-behavior-y: contain;
           background: black;
+          overflow: hidden;
         }
         select {
           appearance: none;
           -webkit-appearance: none;
         }
-        @media (orientation: landscape) {
+        @media screen and (orientation: landscape) {
           .landscape-notice {
             display: flex;
           }

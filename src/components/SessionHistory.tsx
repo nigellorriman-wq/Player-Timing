@@ -23,67 +23,67 @@ export default function SessionHistory({ records, onClear }: SessionHistoryProps
 
   return (
     <div className="flex flex-col h-full bg-[#111]">
-      <div className="p-4 flex items-center justify-between border-b border-zinc-800">
+      <div className="p-3 flex items-center justify-between border-b border-zinc-800">
         <div>
-          <h2 className="text-xl font-bold text-white">Session History</h2>
-          <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">
-            {records.length} Record{records.length !== 1 ? 's' : ''} Stored
+          <h2 className="text-lg font-bold text-white leading-none">Session History</h2>
+          <p className="text-[9px] text-[#FFDD00] uppercase tracking-widest font-bold mt-1">
+            {records.length} Record{records.length !== 1 ? 's' : ''}
           </p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => exportToPDF(records)}
-            className="p-3 bg-[#FFDD00] text-black rounded-xl hover:opacity-90 transition-all font-bold flex items-center gap-2"
+            className="p-2 px-3 bg-[#FFDD00] text-black rounded-lg hover:opacity-90 transition-all font-bold text-xs flex items-center gap-1.5"
           >
-            <Download size={18} /> <span className="hidden sm:inline">Export PDF</span>
+            <Download size={14} /> PDF
           </button>
           <button
             onClick={onClear}
-            className="p-3 bg-zinc-800 text-red-500 rounded-xl hover:bg-zinc-700 transition-all"
+            className="p-2 bg-zinc-800 text-red-500 rounded-lg hover:bg-zinc-700 transition-all"
           >
-            <Trash2 size={18} />
+            <Trash2 size={14} />
           </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-2 space-y-2">
         {records.slice().reverse().map((record) => (
           <div 
             key={record.id}
-            className={`p-4 rounded-xl bg-zinc-900 border-l-4 ${
+            className={`p-2.5 rounded-lg bg-zinc-900 border-l-2 ${
               record.isSlow ? 'border-red-500' : 'border-green-500'
             }`}
           >
-            <div className="flex justify-between items-start mb-2">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 font-mono text-xs text-gray-500">
-                  <Clock size={12} /> {new Date(record.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            <div className="flex justify-between items-start mb-1">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 font-mono text-[9px] text-gray-500">
+                  <Clock size={10} /> {new Date(record.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
                 {record.latitude && record.longitude && (
-                  <div className="flex items-center gap-1 font-mono text-[10px] text-gray-400">
-                    <MapPin size={10} className="text-[#FFDD00]" />
-                    {record.latitude.toFixed(4)}, {record.longitude.toFixed(4)}
+                  <div className="flex items-center gap-0.5 font-mono text-[9px] text-gray-400">
+                    <MapPin size={9} className="text-[#FFDD00]" />
+                    {record.latitude.toFixed(3)}, {record.longitude.toFixed(3)}
                   </div>
                 )}
               </div>
-              <div className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+              <div className={`px-1.5 py-0.2 rounded text-[8px] font-black uppercase ${
                 record.isSlow ? 'bg-red-950 text-red-500' : 'bg-green-950 text-green-500'
               }`}>
-                {record.isSlow ? 'Slow Play' : 'In Time'}
+                {record.isSlow ? 'Slow' : 'OK'}
               </div>
             </div>
             
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-lg font-bold text-white leading-tight">{record.playerName}</div>
-                <div className="flex items-center gap-3 text-xs text-gray-500 mt-1 uppercase font-bold">
-                  <span className="flex items-center gap-1"><Hash size={10} /> Hole {record.hole}</span>
-                  <span className="flex items-center gap-1"><User size={10} /> Group {record.group}</span>
+                <div className="text-sm font-bold text-white leading-tight">{record.playerName}</div>
+                <div className="flex items-center gap-2 text-[9px] text-gray-500 mt-0.5 uppercase font-bold">
+                  <span className="flex items-center gap-0.5"><Hash size={9} /> {record.hole}</span>
+                  <span className="flex items-center gap-0.5"><User size={9} /> G{record.group}</span>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-black text-[#FFDD00] leading-none">{record.timeTaken.toFixed(1)}s</div>
-                <div className="text-[10px] text-gray-500 uppercase font-bold mt-1">Limit: {record.limit}s</div>
+                <div className="text-xl font-black text-[#FFDD00] leading-none">{record.timeTaken.toFixed(1)}s</div>
+                <div className="text-[9px] text-gray-500 uppercase font-bold mt-0.5">Limit: {record.limit}s</div>
               </div>
             </div>
           </div>
