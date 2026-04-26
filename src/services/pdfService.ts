@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { PlayerShotRecord } from '../types';
 
 export function exportToPDF(records: PlayerShotRecord[]) {
@@ -21,7 +21,7 @@ export function exportToPDF(records: PlayerShotRecord[]) {
     r.latitude && r.longitude ? `${r.latitude.toFixed(4)}, ${r.longitude.toFixed(4)}` : '-'
   ]);
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: 40,
     head: [['Time', 'Hole', 'Grp', 'Player', 'Taken', 'Status', 'Location']],
     body: tableData,

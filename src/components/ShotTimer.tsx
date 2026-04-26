@@ -110,9 +110,9 @@ export default function ShotTimer({ onRecordAdded, records }: ShotTimerProps) {
           <select 
             value={hole} 
             onChange={(e) => setHole(e.target.value)}
-            className="w-full bg-transparent text-lg font-bold outline-none"
+            className="w-full bg-transparent text-lg font-bold outline-none cursor-pointer"
           >
-            {Array.from({ length: 18 }, (_, i) => i + 1).map(n => (
+            {Array.from({ length: 18 }, (_, i) => String(i + 1)).map(n => (
               <option key={n} value={n} className="bg-zinc-900">{n}</option>
             ))}
           </select>
@@ -124,9 +124,9 @@ export default function ShotTimer({ onRecordAdded, records }: ShotTimerProps) {
           <select 
             value={group} 
             onChange={(e) => setGroup(e.target.value)}
-            className="w-full bg-transparent text-lg font-bold outline-none"
+            className="w-full bg-transparent text-lg font-bold outline-none cursor-pointer"
           >
-            {Array.from({ length: 50 }, (_, i) => i + 1).map(n => (
+            {Array.from({ length: 50 }, (_, i) => String(i + 1)).map(n => (
               <option key={n} value={n} className="bg-zinc-900">{n}</option>
             ))}
           </select>
@@ -161,7 +161,7 @@ export default function ShotTimer({ onRecordAdded, records }: ShotTimerProps) {
                         key={rec.id} 
                         className={`text-[8px] px-1 py-0.2 rounded font-mono font-bold ${
                           rec.isSlow 
-                            ? (selectedPlayer === idx ? 'bg-red-700 text-white' : 'bg-red-950 text-red-500') 
+                            ? 'bg-white text-red-600' 
                             : (selectedPlayer === idx ? 'bg-zinc-800 text-white' : 'bg-zinc-800 text-gray-400')
                         }`}
                       >
@@ -262,7 +262,7 @@ export default function ShotTimer({ onRecordAdded, records }: ShotTimerProps) {
               </p>
               
               <div className={`w-full p-2.5 rounded-lg mb-4 flex items-center justify-center gap-2 text-xs font-bold ${
-                timer > currentLimit * 1.1 ? 'bg-red-950 text-red-500' : 'bg-green-950 text-green-500'
+                timer > currentLimit * 1.1 ? 'bg-white text-red-600 shadow-md' : 'bg-green-950 text-green-500'
               }`}>
                 {timer > currentLimit * 1.1 ? 'SLOW PLAY' : 'IN TIME'}
               </div>

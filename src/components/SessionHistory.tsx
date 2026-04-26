@@ -30,7 +30,7 @@ export default function SessionHistory({ records, onClear }: SessionHistoryProps
             {records.length} Record{records.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-6">
           <button
             onClick={() => exportToPDF(records)}
             className="p-2 px-3 bg-[#FFDD00] text-black rounded-lg hover:opacity-90 transition-all font-bold text-xs flex items-center gap-1.5"
@@ -67,7 +67,7 @@ export default function SessionHistory({ records, onClear }: SessionHistoryProps
                 )}
               </div>
               <div className={`px-1.5 py-0.2 rounded text-[8px] font-black uppercase ${
-                record.isSlow ? 'bg-red-950 text-red-500' : 'bg-green-950 text-green-500'
+                record.isSlow ? 'bg-white text-red-600 shadow-sm' : 'bg-green-950 text-green-500'
               }`}>
                 {record.isSlow ? 'Slow' : 'OK'}
               </div>

@@ -28,10 +28,20 @@ export default function App() {
     localStorage.setItem('golf-officiating-records', JSON.stringify(records));
   }, [records]);
 
-  // Request wake lock on interaction
+  // Request wake lock and lock orientation on interaction
   const handleInteraction = async () => {
     if (!isWakeLockActive) {
       await requestWakeLock();
+    }
+    
+    // Attempt to lock orientation to portrait if supported
+    if (window.screen && window.screen.orientation && (window.screen.orientation as any).lock) {
+      try {
+        await (window.screen.orientation as any).lock('portrait');
+      } catch (err) {
+        // Silent fail as it's not always supported or needs fullscreen
+        console.warn('Orientation lock failed:', err);
+      }
     }
   };
 
