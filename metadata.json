@@ -1,0 +1,6 @@
+{
+  "name": "Player Timing",
+  "description": "Precision timing and officiating tool for golf referees under the name 'Player Timing'. Features lost ball countdowns, shot timers with leeway calculations, GPS location tracking, and session report exports.",
+  "requestFramePermissions": ["geolocation", "screen-wake-lock"],
+  "majorCapabilities": []
+}
