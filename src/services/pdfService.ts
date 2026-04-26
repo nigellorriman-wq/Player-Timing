@@ -27,7 +27,24 @@ export function exportToPDF(records: PlayerShotRecord[]) {
     body: tableData,
     headStyles: { fillColor: [30, 30, 30] },
     alternateRowStyles: { fillColor: [245, 245, 245] },
-    styles: { fontSize: 9 }
+    styles: { fontSize: 9 },
+    willDrawCell: (data) => {
+      if (data.section === 'body' && data.column.index === 6) {
+        const record = records[data.row.index];
+        if (record.latitude && record.longitude) {
+          data.cell.styles.textColor = [0, 0, 255];
+        }
+      }
+    },
+    didDrawCell: (data) => {
+      if (data.section === 'body' && data.column.index === 6) {
+        const record = records[data.row.index];
+        if (record.latitude && record.longitude) {
+          const url = `https://www.google.com/maps?q=${record.latitude},${record.longitude}`;
+          doc.link(data.cell.x, data.cell.y, data.cell.width, data.cell.height, { url });
+        }
+      }
+    }
   });
 
   doc.save(`golf-session-${Date.now()}.pdf`);

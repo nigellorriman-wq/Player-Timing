@@ -159,7 +159,7 @@ export default function ShotTimer({ onRecordAdded, records }: ShotTimerProps) {
                     {playerHoleHistory.map((rec) => (
                       <span 
                         key={rec.id} 
-                        className={`text-[8px] px-1 py-0.2 rounded font-mono font-bold ${
+                        className={`text-[11px] px-1.5 py-0.5 rounded font-mono font-bold ${
                           rec.isSlow 
                             ? 'bg-white text-red-600' 
                             : (selectedPlayer === idx ? 'bg-zinc-800 text-white' : 'bg-zinc-800 text-gray-400')
