@@ -1,26 +1,48 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Square, User, Hash, Flag, ChevronRight, AlertTriangle, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { PlayerShotRecord } from '../types';
+import { PlayerShotRecord, TournamentInfo, TimerType } from '../types';
 
 interface ShotTimerProps {
   onRecordAdded: (record: PlayerShotRecord) => void;
   records: PlayerShotRecord[];
+  tournamentInfo?: TournamentInfo;
 }
 
-export default function ShotTimer({ onRecordAdded, records }: ShotTimerProps) {
+export default function ShotTimer({ onRecordAdded, records, tournamentInfo }: ShotTimerProps) {
   const [hole, setHole] = useState('1');
   const [group, setGroup] = useState('1');
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
   const [isFirstToPlay, setIsFirstToPlay] = useState(false);
-  
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update clock every minute for pace calculation
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const getPlayersByGroup = () => {
+    if (tournamentInfo) {
+      const g = tournamentInfo.groups.find(g => g.groupNumber === group);
+      if (g && g.players.length > 0) return g.players;
+    }
+    return ['Player 1', 'Player 2', 'Player 3', 'Player 4'];
+  };
+
+  const [players, setPlayers] = useState(getPlayersByGroup());
+
   // States: 'idle', 'countdown', 'running', 'finished'
   const [status, setStatus] = useState<'idle' | 'countdown' | 'running' | 'finished'>('idle');
   const [countdown, setCountdown] = useState(3);
   const [timer, setTimer] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const players = ['Player 1', 'Player 2', 'Player 3', 'Player 4'];
+  // Reset selected player when group changes and update names
+  useEffect(() => {
+    setSelectedPlayer(null);
+    setPlayers(getPlayersByGroup());
+  }, [group, tournamentInfo]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -61,6 +83,7 @@ export default function ShotTimer({ onRecordAdded, records }: ShotTimerProps) {
     const saveRecord = (lat?: number, lon?: number) => {
       const record: PlayerShotRecord = {
         id: Math.random().toString(36).substr(2, 9),
+        type: TimerType.SHOT_TIME,
         timestamp: Date.now(),
         hole,
         group,
@@ -126,12 +149,79 @@ export default function ShotTimer({ onRecordAdded, records }: ShotTimerProps) {
             onChange={(e) => setGroup(e.target.value)}
             className="w-full bg-transparent text-lg font-bold outline-none cursor-pointer"
           >
-            {Array.from({ length: 50 }, (_, i) => String(i + 1)).map(n => (
-              <option key={n} value={n} className="bg-zinc-900">{n}</option>
-            ))}
+            {tournamentInfo && tournamentInfo.groups.length > 0 ? (
+              tournamentInfo.groups.map(g => (
+                <option key={g.groupNumber} value={g.groupNumber} className="bg-zinc-900">{g.groupNumber}</option>
+              ))
+            ) : (
+              Array.from({ length: 50 }, (_, i) => String(i + 1)).map(n => (
+                <option key={n} value={n} className="bg-zinc-900">{n}</option>
+              ))
+            )}
           </select>
         </div>
       </div>
+
+      {/* Tournament Pace Indicator */}
+      {tournamentInfo && (
+        <div className="mb-3">
+          {(() => {
+            const currentGroup = tournamentInfo.groups.find(g => g.groupNumber === group);
+            if (!currentGroup) return null;
+
+            // Calculate target time
+            const [startH, startM] = currentGroup.startTime.split(':').map(Number);
+            const startMinutes = startH * 60 + startM;
+            
+            let totalMinutes = 0;
+            const currentHoleNum = Number(hole);
+            const paceMap = new Map(tournamentInfo.paceOfPlay.map(p => [p.hole, p.minutes]));
+
+            // Sequence of holes to sum
+            let holeSeq: number[] = [];
+            if (currentGroup.startingTee === 1) {
+              for (let h = 1; h <= currentHoleNum; h++) holeSeq.push(h);
+            } else {
+              // Started on 10
+              for (let h = 10; h <= 18; h++) {
+                holeSeq.push(h);
+                if (h === currentHoleNum) break;
+              }
+              if (currentHoleNum < 10) {
+                for (let h = 1; h <= currentHoleNum; h++) holeSeq.push(h);
+              }
+            }
+
+            totalMinutes = holeSeq.reduce((sum, h) => sum + (paceMap.get(h) || 0), 0);
+            const targetTotalMinutes = startMinutes + totalMinutes;
+            const currentDayMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+            const diff = targetTotalMinutes - currentDayMinutes;
+
+            const targetH = Math.floor(targetTotalMinutes / 60) % 24;
+            const targetM = targetTotalMinutes % 60;
+            const timeStr = `${targetH.toString().padStart(2, '0')}:${targetM.toString().padStart(2, '0')}`;
+
+            return (
+              <div className={`p-2.5 rounded-lg border flex items-center justify-between transition-colors ${
+                diff < 0 ? 'bg-red-950/30 border-red-900/50' : 'bg-green-950/30 border-green-900/50'
+              }`}>
+                <div>
+                  <div className="text-[10px] text-gray-500 uppercase font-black tracking-tight">Group Pace Status</div>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className={`text-lg font-black ${diff < 0 ? 'text-red-500' : 'text-green-500'}`}>
+                      {diff < 0 ? `${Math.abs(diff)}m Behind` : `${diff}m Allotted`}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] text-gray-500 uppercase font-black">Hole {hole} Target</div>
+                  <div className="text-lg font-black text-gray-300 tabular-nums">{timeStr}</div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
 
       <div className="mb-3">
         <label className="flex items-center gap-1.5 text-[10px] text-gray-500 uppercase font-bold mb-2">
@@ -140,7 +230,7 @@ export default function ShotTimer({ onRecordAdded, records }: ShotTimerProps) {
         <div className="grid grid-cols-2 gap-1.5">
           {players.map((p, idx) => {
             const playerHoleHistory = records.filter(
-              r => r.playerName === p && r.hole === hole && r.group === group
+              r => r.playerName === p && r.hole === hole && r.group === group && r.type === TimerType.SHOT_TIME
             );
 
             return (

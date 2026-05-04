@@ -1,14 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Timer, LayoutGrid, History, ShieldAlert } from 'lucide-react';
+import { Timer, LayoutGrid, History, ShieldAlert, Trophy } from 'lucide-react';
 import LostBallTimer from './components/LostBallTimer';
 import ShotTimer from './components/ShotTimer';
 import SessionHistory from './components/SessionHistory';
-import { PlayerShotRecord } from './types';
+import { TournamentSetup } from './components/TournamentSetup';
+import { PlayerShotRecord, TournamentInfo } from './types';
 import { useWakeLock } from './hooks/useWakeLock';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'lost' | 'shot' | 'history'>('shot');
+  const [activeTab, setActiveTab] = useState<'lost' | 'shot' | 'history' | 'tournament'>('shot');
   const [records, setRecords] = useState<PlayerShotRecord[]>([]);
+  const [tournament, setTournament] = useState<TournamentInfo | undefined>(() => {
+    const saved = localStorage.getItem('golf-tournament-info');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return undefined;
+      }
+    }
+    return undefined;
+  });
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update clock
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const { isSupported, isActive: isWakeLockActive, requestWakeLock } = useWakeLock();
 
   // Load from localStorage on mount
@@ -27,6 +47,13 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('golf-officiating-records', JSON.stringify(records));
   }, [records]);
+
+  // Save tournament info
+  useEffect(() => {
+    if (tournament) {
+      localStorage.setItem('golf-tournament-info', JSON.stringify(tournament));
+    }
+  }, [tournament]);
 
   // Request wake lock and lock orientation on interaction
   const handleInteraction = async () => {
@@ -69,7 +96,17 @@ export default function App() {
             <Timer size={14} strokeWidth={3} />
           </div>
           <div>
-            <h1 className="text-sm font-black uppercase tracking-tighter leading-none italic">Player Timing</h1>
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-sm font-black uppercase tracking-tighter leading-none italic">
+                {tournament ? tournament.name : 'Player Timing'}
+              </h1>
+              <span className="text-sm font-black tabular-nums text-[#FFDD00]">
+                {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
+              </span>
+            </div>
+            {tournament && (
+              <p className="text-[8px] text-gray-500 font-bold uppercase tracking-wider">Round {tournament.round}</p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -89,14 +126,49 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-1 overflow-hidden relative">
         <div className="absolute inset-0 overflow-y-auto">
-          {activeTab === 'lost' && <LostBallTimer />}
-          {activeTab === 'shot' && <ShotTimer onRecordAdded={handleRecordAdded} records={records} />}
-          {activeTab === 'history' && <SessionHistory records={records} onClear={clearHistory} />}
+          {activeTab === 'lost' && (
+            <LostBallTimer 
+              onRecordAdded={handleRecordAdded} 
+              tournamentInfo={tournament} 
+            />
+          )}
+          {activeTab === 'shot' && (
+            <ShotTimer 
+              onRecordAdded={handleRecordAdded} 
+              records={records} 
+              tournamentInfo={tournament}
+            />
+          )}
+          {activeTab === 'history' && (
+            <SessionHistory 
+              records={records} 
+              onClear={clearHistory} 
+              tournamentInfo={tournament}
+            />
+          )}
+          {activeTab === 'tournament' && (
+            <TournamentSetup 
+              currentInfo={tournament}
+              onSetupComplete={(info) => {
+                setTournament(info);
+                setActiveTab('shot');
+              }} 
+            />
+          )}
         </div>
       </main>
 
       {/* Navigation Bar */}
-      <nav className="px-4 py-2 pb-6 flex items-center justify-around border-t border-zinc-800 bg-zinc-900 bg-opacity-80 backdrop-blur-xl shrink-0">
+      <nav className="px-1 py-2 pb-6 flex items-center justify-around border-t border-zinc-800 bg-zinc-900 bg-opacity-80 backdrop-blur-xl shrink-0">
+        <button 
+          onClick={() => setActiveTab('tournament')}
+          className={`flex flex-col items-center gap-0.5 transition-all ${
+            activeTab === 'tournament' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
+          }`}
+        >
+          <Trophy size={20} />
+          <span className="text-[9px] font-bold uppercase tracking-widest">Setup</span>
+        </button>
         <button 
           onClick={() => setActiveTab('lost')}
           className={`flex flex-col items-center gap-0.5 transition-all ${

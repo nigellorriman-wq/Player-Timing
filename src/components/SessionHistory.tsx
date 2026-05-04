@@ -1,14 +1,15 @@
 import React from 'react';
-import { Download, Trash2, History, Clock, User, Hash, MapPin } from 'lucide-react';
-import { PlayerShotRecord } from '../types';
+import { Download, Trash2, History, Clock, User, Hash, MapPin, Timer, LayoutGrid } from 'lucide-react';
+import { PlayerShotRecord, TimerType, TournamentInfo } from '../types';
 import { exportToPDF } from '../services/pdfService';
 
 interface SessionHistoryProps {
   records: PlayerShotRecord[];
   onClear: () => void;
+  tournamentInfo?: TournamentInfo;
 }
 
-export default function SessionHistory({ records, onClear }: SessionHistoryProps) {
+export default function SessionHistory({ records, onClear, tournamentInfo }: SessionHistoryProps) {
   if (records.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-gray-500 p-8 text-center">
@@ -32,7 +33,7 @@ export default function SessionHistory({ records, onClear }: SessionHistoryProps
         </div>
         <div className="flex gap-6">
           <button
-            onClick={() => exportToPDF(records)}
+            onClick={() => exportToPDF(records, tournamentInfo)}
             className="p-2 px-3 bg-[#FFDD00] text-black rounded-lg hover:opacity-90 transition-all font-bold text-xs flex items-center gap-1.5"
           >
             <Download size={14} /> PDF
@@ -51,7 +52,9 @@ export default function SessionHistory({ records, onClear }: SessionHistoryProps
           <div 
             key={record.id}
             className={`p-2.5 rounded-lg bg-zinc-900 border-l-2 ${
-              record.isSlow ? 'border-red-500' : 'border-green-500'
+              record.type === TimerType.LOST_BALL 
+                ? 'border-[#FFDD00]' 
+                : (record.isSlow ? 'border-red-500' : 'border-green-500')
             }`}
           >
             <div className="flex justify-between items-start mb-1">
@@ -66,10 +69,15 @@ export default function SessionHistory({ records, onClear }: SessionHistoryProps
                   </div>
                 )}
               </div>
-              <div className={`px-1.5 py-0.2 rounded text-[8px] font-black uppercase ${
-                record.isSlow ? 'bg-white text-red-600 shadow-sm' : 'bg-green-950 text-green-500'
-              }`}>
-                {record.isSlow ? 'Slow' : 'OK'}
+              <div className="flex items-center gap-1.5">
+                <div className={`px-1.5 py-0.2 rounded text-[8px] font-black uppercase flex items-center gap-1 ${
+                  record.type === TimerType.LOST_BALL 
+                    ? 'bg-zinc-800 text-[#FFDD00]' 
+                    : (record.isSlow ? 'bg-white text-red-600 shadow-sm' : 'bg-green-950 text-green-500')
+                }`}>
+                  {record.type === TimerType.LOST_BALL ? <Timer size={8} /> : <LayoutGrid size={8} />}
+                  {record.type === TimerType.LOST_BALL ? 'Search' : (record.isSlow ? 'Slow' : 'OK')}
+                </div>
               </div>
             </div>
             
@@ -82,8 +90,14 @@ export default function SessionHistory({ records, onClear }: SessionHistoryProps
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-xl font-black text-[#FFDD00] leading-none">{record.timeTaken.toFixed(1)}s</div>
-                <div className="text-[9px] text-gray-500 uppercase font-bold mt-0.5">Limit: {record.limit}s</div>
+                <div className="text-xl font-black text-[#FFDD00] leading-none">
+                  {record.type === TimerType.LOST_BALL 
+                    ? `${Math.floor(record.timeTaken / 60)}:${(record.timeTaken % 60).toString().padStart(2, '0')}` 
+                    : `${record.timeTaken.toFixed(1)}s`}
+                </div>
+                <div className="text-[9px] text-gray-500 uppercase font-bold mt-0.5">
+                  Limit: {record.type === TimerType.LOST_BALL ? '3m' : `${record.limit}s`}
+                </div>
               </div>
             </div>
           </div>
