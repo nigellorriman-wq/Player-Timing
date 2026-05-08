@@ -42,15 +42,13 @@ async function startServer() {
 
   // Parse PDF endpoint
   app.post("/api/parse-pdf", async (req, res) => {
+    console.log("[SERVER] POST /api/parse-pdf called");
     try {
-      console.log("[API] Parsing PDF request received");
       const { base64Data } = req.body;
       if (!base64Data) {
-        console.error("[API] Missing base64Data in request");
         return res.status(400).json({ error: "Missing base64Data" });
       }
 
-      console.log("[API] Calling Gemini...");
       const ai = getAI();
       const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -119,9 +117,14 @@ async function startServer() {
       const text = result.response.text();
       res.json(JSON.parse(text));
     } catch (error) {
-      console.error("[API] Error during pdf parsing:", error);
+      console.error("[SERVER] PDF parsing error:", error);
       res.status(500).json({ error: error instanceof Error ? error.message : "Failed to parse PDF" });
     }
+  });
+
+  // Catch-all for other /api routes to prevent them falling through to Vite SPA fallback
+  app.all("/api/*", (req, res) => {
+    res.status(404).json({ error: `API route ${req.method} ${req.url} not found` });
   });
 
   if (process.env.NODE_ENV !== "production") {
