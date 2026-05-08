@@ -30,7 +30,7 @@ async function startServer() {
       if (!key) {
         throw new Error("GEMINI_API_KEY environment variable is required");
       }
-      aiClient = new GoogleGenAI(key);
+      aiClient = new GoogleGenAI({ apiKey: key });
     }
     return aiClient;
   }
@@ -50,9 +50,8 @@ async function startServer() {
       }
 
       const ai = getAI();
-      const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-      const result = await model.generateContent({
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
         contents: [
           {
             role: "user",
@@ -69,7 +68,7 @@ async function startServer() {
             ],
           },
         ],
-        generationConfig: {
+        config: {
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
@@ -114,8 +113,7 @@ async function startServer() {
         }
       });
 
-      const text = result.response.text();
-      res.json(JSON.parse(text));
+      res.json(JSON.parse(response.text || '{}'));
     } catch (error) {
       console.error("[SERVER] PDF parsing error:", error);
       res.status(500).json({ error: error instanceof Error ? error.message : "Failed to parse PDF" });
