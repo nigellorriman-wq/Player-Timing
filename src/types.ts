@@ -1,6 +1,7 @@
 export enum TimerType {
   LOST_BALL = 'LOST_BALL',
-  SHOT_TIME = 'SHOT_TIME'
+  SHOT_TIME = 'SHOT_TIME',
+  FLAG_IN = 'FLAG_IN'
 }
 
 export interface PlayerShotRecord {
@@ -11,12 +12,14 @@ export interface PlayerShotRecord {
   group: string;
   playerName: string;
   isFirstToPlay?: boolean;
-  timeTaken: number; // in seconds
-  limit: number; // 50, 40, or 180 for search
+  timeTaken: number; // in seconds or difference in minutes for flag-in
+  limit: number; // 50, 40, 180, or target cumulative minutes
   leeway?: number; // 10%
   isSlow?: boolean;
   latitude?: number;
   longitude?: number;
+  actualTime?: string; // HH:MM for flag-in
+  targetTime?: string; // HH:MM for flag-in
 }
 
 export interface HolePace {

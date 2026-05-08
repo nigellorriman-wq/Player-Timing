@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Square, User, Hash, Flag, ChevronRight, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Play, Square, User, Hash, Flag, ChevronRight, AlertTriangle, CheckCircle, Pause, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PlayerShotRecord, TournamentInfo, TimerType } from '../types';
 
@@ -32,8 +32,8 @@ export default function ShotTimer({ onRecordAdded, records, tournamentInfo }: Sh
 
   const [players, setPlayers] = useState(getPlayersByGroup());
 
-  // States: 'idle', 'countdown', 'running', 'finished'
-  const [status, setStatus] = useState<'idle' | 'countdown' | 'running' | 'finished'>('idle');
+  // States: 'idle', 'countdown', 'running', 'paused', 'finished'
+  const [status, setStatus] = useState<'idle' | 'countdown' | 'running' | 'paused' | 'finished'>('idle');
   const [countdown, setCountdown] = useState(3);
   const [timer, setTimer] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -73,8 +73,19 @@ export default function ShotTimer({ onRecordAdded, records, tournamentInfo }: Sh
     setStatus('countdown');
   };
 
+  const handleTogglePause = () => {
+    if (status === 'running') setStatus('paused');
+    else if (status === 'paused') setStatus('running');
+  };
+
+  const handleReset = () => {
+    setStatus('idle');
+    setTimer(0);
+    setCountdown(3);
+  };
+
   const handleStop = () => {
-    if (status !== 'running') return;
+    if (status !== 'running' && status !== 'paused') return;
     setStatus('finished');
     
     // Get location and save record
@@ -308,25 +319,51 @@ export default function ShotTimer({ onRecordAdded, records, tournamentInfo }: Sh
             </motion.div>
           )}
 
-          {status === 'running' && (
+          {(status === 'running' || status === 'paused') && (
             <motion.div
               key="timer"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex flex-col items-center"
+              className="flex flex-col items-center w-full"
             >
-              <div className={`text-8xl font-black tabular-nums transition-colors ${isOverTime ? 'text-red-500' : 'text-white'}`}>
+              <div className={`text-8xl font-black tabular-nums transition-colors ${
+                status === 'paused' ? 'text-zinc-600' : (isOverTime ? 'text-red-500' : 'text-white')
+              }`}>
                 {timer.toFixed(1)}
               </div>
-              <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                Seconds taken
+              <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-8">
+                {status === 'paused' ? 'Timer Paused' : 'Seconds taken'}
               </div>
-              <button
-                onClick={handleStop}
-                className="mt-6 w-24 h-24 bg-red-600 rounded-full flex items-center justify-center shadow-lg hover:bg-red-500 transition-all"
-              >
-                <Square size={36} fill="white" className="text-white" />
-              </button>
+
+              <div className="flex items-center gap-6">
+                <button
+                  onClick={handleReset}
+                  className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center border border-zinc-700 hover:bg-zinc-700 transition-all"
+                  title="Reset"
+                >
+                  <RotateCcw size={24} className="text-gray-400" />
+                </button>
+
+                <button
+                  onClick={handleStop}
+                  className="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center shadow-lg hover:bg-red-500 transition-all"
+                  title="Stop and Record"
+                >
+                  <Square size={36} fill="white" className="text-white" />
+                </button>
+
+                <button
+                  onClick={handleTogglePause}
+                  className={`w-16 h-16 rounded-full flex items-center justify-center border transition-all ${
+                    status === 'paused' 
+                      ? 'bg-[#FFDD00] border-[#FFDD00] text-black' 
+                      : 'bg-zinc-800 border-zinc-700 text-gray-400 hover:bg-zinc-700'
+                  }`}
+                  title={status === 'paused' ? 'Resume' : 'Pause'}
+                >
+                  {status === 'paused' ? <Play size={24} fill="black" /> : <Pause size={24} fill="currentColor" />}
+                </button>
+              </div>
             </motion.div>
           )}
 

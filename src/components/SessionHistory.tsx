@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, Trash2, History, Clock, User, Hash, MapPin, Timer, LayoutGrid } from 'lucide-react';
+import { Download, Trash2, History, Clock, User, Hash, MapPin, Timer, LayoutGrid, Flag } from 'lucide-react';
 import { PlayerShotRecord, TimerType, TournamentInfo } from '../types';
 import { exportToPDF } from '../services/pdfService';
 
@@ -54,7 +54,9 @@ export default function SessionHistory({ records, onClear, tournamentInfo }: Ses
             className={`p-2.5 rounded-lg bg-zinc-900 border-l-2 ${
               record.type === TimerType.LOST_BALL 
                 ? 'border-[#FFDD00]' 
-                : (record.isSlow ? 'border-red-500' : 'border-green-500')
+                : (record.type === TimerType.FLAG_IN 
+                    ? (record.isSlow ? 'border-red-500' : 'border-green-500')
+                    : (record.isSlow ? 'border-red-500' : 'border-green-500'))
             }`}
           >
             <div className="flex justify-between items-start mb-1">
@@ -73,30 +75,47 @@ export default function SessionHistory({ records, onClear, tournamentInfo }: Ses
                 <div className={`px-1.5 py-0.2 rounded text-[8px] font-black uppercase flex items-center gap-1 ${
                   record.type === TimerType.LOST_BALL 
                     ? 'bg-zinc-800 text-[#FFDD00]' 
-                    : (record.isSlow ? 'bg-white text-red-600 shadow-sm' : 'bg-green-950 text-green-500')
+                    : (record.type === TimerType.FLAG_IN 
+                        ? (record.isSlow ? 'bg-red-950 text-red-500' : 'bg-green-950 text-green-500')
+                        : (record.isSlow ? 'bg-white text-red-600 shadow-sm' : 'bg-green-950 text-green-500'))
                 }`}>
-                  {record.type === TimerType.LOST_BALL ? <Timer size={8} /> : <LayoutGrid size={8} />}
-                  {record.type === TimerType.LOST_BALL ? 'Search' : (record.isSlow ? 'Slow' : 'OK')}
+                  {record.type === TimerType.LOST_BALL ? <Timer size={8} /> : (record.type === TimerType.FLAG_IN ? <Flag size={8} /> : <LayoutGrid size={8} />)}
+                  {record.type === TimerType.LOST_BALL 
+                    ? 'Search' 
+                    : (record.type === TimerType.FLAG_IN ? 'Pace' : (record.isSlow ? 'Slow' : 'OK'))}
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center justify-between">
+            <div className="flex items-end justify-between">
               <div>
                 <div className="text-sm font-bold text-white leading-tight">{record.playerName}</div>
                 <div className="flex items-center gap-2 text-[9px] text-gray-500 mt-0.5 uppercase font-bold">
                   <span className="flex items-center gap-0.5"><Hash size={9} /> {record.hole}</span>
                   <span className="flex items-center gap-0.5"><User size={9} /> G{record.group}</span>
                 </div>
+                {record.type === TimerType.FLAG_IN && (
+                  <div className="text-[9px] text-gray-500 font-bold uppercase mt-1">
+                    T: {record.targetTime} • A: {record.actualTime}
+                  </div>
+                )}
               </div>
               <div className="text-right">
-                <div className="text-xl font-black text-[#FFDD00] leading-none">
+                <div className={`text-xl font-black leading-none ${
+                   record.type === TimerType.FLAG_IN 
+                    ? (record.isSlow ? 'text-red-500' : 'text-green-500') 
+                    : 'text-[#FFDD00]'
+                }`}>
                   {record.type === TimerType.LOST_BALL 
                     ? `${Math.floor(record.timeTaken / 60)}:${(record.timeTaken % 60).toString().padStart(2, '0')}` 
-                    : `${record.timeTaken.toFixed(1)}s`}
+                    : (record.type === TimerType.FLAG_IN 
+                        ? `${record.timeTaken >= 0 ? '+' : ''}${record.timeTaken}`
+                        : `${record.timeTaken.toFixed(1)}s`)}
                 </div>
-                <div className="text-[9px] text-gray-500 uppercase font-bold mt-0.5">
-                  Limit: {record.type === TimerType.LOST_BALL ? '3m' : `${record.limit}s`}
+                <div className="text-[9px] text-gray-500 uppercase font-bold mt-0.5 tabular-nums">
+                  {record.type === TimerType.LOST_BALL 
+                    ? 'Limit: 3m' 
+                    : (record.type === TimerType.FLAG_IN ? 'Diff (Mins)' : `Limit: ${record.limit}s`)}
                 </div>
               </div>
             </div>

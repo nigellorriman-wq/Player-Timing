@@ -16,19 +16,29 @@ export function exportToPDF(records: PlayerShotRecord[], tournament?: Tournament
 
   const tableData = records.map(r => {
     const isSearch = r.type === TimerType.LOST_BALL;
-    const timeFormatted = isSearch 
-      ? `${Math.floor(r.timeTaken / 60)}:${(r.timeTaken % 60).toString().padStart(2, '0')}`
-      : `${r.timeTaken.toFixed(1)}s`;
+    const isFlag = r.type === TimerType.FLAG_IN;
     
+    let typeLabel = 'SHOT';
+    if (isSearch) typeLabel = 'SEARCH';
+    if (isFlag) typeLabel = 'PACE';
+
+    let timeFormatted = `${r.timeTaken.toFixed(1)}s`;
+    if (isSearch) timeFormatted = `${Math.floor(r.timeTaken / 60)}:${(r.timeTaken % 60).toString().padStart(2, '0')}`;
+    if (isFlag) timeFormatted = `${r.timeTaken > 0 ? '+' : ''}${r.timeTaken}m`;
+    
+    let limitLabel = `${r.limit}s`;
+    if (isSearch) limitLabel = '3:00';
+    if (isFlag) limitLabel = `T:${r.targetTime} A:${r.actualTime}`;
+
     return [
       new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isSearch ? 'SEARCH' : 'SHOT',
+      typeLabel,
       r.hole,
       r.group,
       r.playerName,
       timeFormatted,
-      isSearch ? '3:00' : `${r.limit}s`,
-      isSearch ? '-' : (r.isSlow ? 'SLOW' : 'OK'),
+      limitLabel,
+      isSearch || isFlag ? (r.isSlow ? 'BEHIND' : 'AHEAD/OK') : (r.isSlow ? 'SLOW' : 'OK'),
       r.latitude && r.longitude ? `${r.latitude.toFixed(4)}, ${r.longitude.toFixed(4)}` : '-'
     ];
   });

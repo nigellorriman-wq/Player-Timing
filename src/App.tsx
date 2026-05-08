@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Timer, LayoutGrid, History, ShieldAlert, Trophy } from 'lucide-react';
+import { Timer, LayoutGrid, History, ShieldAlert, Trophy, BarChart2, Flag } from 'lucide-react';
 import LostBallTimer from './components/LostBallTimer';
 import ShotTimer from './components/ShotTimer';
 import SessionHistory from './components/SessionHistory';
+import { HoleTimings } from './components/HoleTimings';
+import { FlagInTimer } from './components/FlagInTimer';
 import { TournamentSetup } from './components/TournamentSetup';
 import { PlayerShotRecord, TournamentInfo } from './types';
 import { useWakeLock } from './hooks/useWakeLock';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'lost' | 'shot' | 'history' | 'tournament'>('shot');
+  const [activeTab, setActiveTab] = useState<'lost' | 'shot' | 'history' | 'tournament' | 'summary' | 'flag'>('shot');
   const [records, setRecords] = useState<PlayerShotRecord[]>([]);
   const [tournament, setTournament] = useState<TournamentInfo | undefined>(() => {
     const saved = localStorage.getItem('golf-tournament-info');
@@ -155,6 +157,18 @@ export default function App() {
               }} 
             />
           )}
+          {activeTab === 'summary' && (
+            <HoleTimings 
+              records={records}
+              tournamentInfo={tournament}
+            />
+          )}
+          {activeTab === 'flag' && (
+            <FlagInTimer 
+              onRecordAdded={handleRecordAdded}
+              tournamentInfo={tournament}
+            />
+          )}
         </div>
       </main>
 
@@ -186,6 +200,24 @@ export default function App() {
         >
           <LayoutGrid size={20} />
           <span className="text-[9px] font-bold uppercase tracking-widest">Shot Clock</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('flag')}
+          className={`flex flex-col items-center gap-0.5 transition-all ${
+            activeTab === 'flag' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
+          }`}
+        >
+          <Flag size={20} />
+          <span className="text-[9px] font-bold uppercase tracking-widest">Flag-In</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('summary')}
+          className={`flex flex-col items-center gap-0.5 transition-all ${
+            activeTab === 'summary' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
+          }`}
+        >
+          <BarChart2 size={20} />
+          <span className="text-[9px] font-bold uppercase tracking-widest">Hole Timing</span>
         </button>
         <button 
           onClick={() => setActiveTab('history')}
