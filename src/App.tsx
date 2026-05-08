@@ -208,77 +208,77 @@ export default function App() {
       </main>
 
       {/* Navigation Bar */}
-      <nav className="border-t border-zinc-800 bg-zinc-900 bg-opacity-80 backdrop-blur-xl shrink-0 overflow-x-auto no-scrollbar">
-        <div className="px-4 py-2 pb-6 flex items-center justify-between sm:justify-around min-w-max gap-6 mx-auto">
+      <nav className="border-t border-zinc-800 bg-zinc-900 bg-opacity-80 backdrop-blur-xl shrink-0">
+        <div className="px-2 py-3 pb-6 grid grid-cols-4 sm:flex sm:items-center sm:justify-around gap-y-4 gap-x-2 mx-auto max-w-lg">
           <button 
             onClick={() => setActiveTab('tournament')}
-            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
+            className={`flex flex-col items-center gap-1 transition-all ${
               activeTab === 'tournament' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
             }`}
           >
-            <Trophy size={20} />
-            <span className="text-[9px] font-bold uppercase tracking-widest">Setup</span>
+            <Trophy size={18} />
+            <span className="text-[8px] font-bold uppercase tracking-wider text-center">Setup</span>
           </button>
           <button 
             onClick={() => setActiveTab('lost')}
-            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
+            className={`flex flex-col items-center gap-1 transition-all ${
               activeTab === 'lost' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
             }`}
           >
-            <Timer size={20} />
-            <span className="text-[9px] font-bold uppercase tracking-widest">Lost Ball</span>
+            <Timer size={18} />
+            <span className="text-[8px] font-bold uppercase tracking-wider text-center">Lost Ball</span>
           </button>
           <button 
             onClick={() => setActiveTab('shot')}
-            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
+            className={`flex flex-col items-center gap-1 transition-all ${
               activeTab === 'shot' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
             }`}
           >
-            <LayoutGrid size={20} />
-            <span className="text-[9px] font-bold uppercase tracking-widest">Shot Clock</span>
+            <LayoutGrid size={18} />
+            <span className="text-[8px] font-bold uppercase tracking-wider text-center">Shot Clock</span>
           </button>
           <button 
             onClick={() => setActiveTab('flag')}
-            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
+            className={`flex flex-col items-center gap-1 transition-all ${
               activeTab === 'flag' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
             }`}
           >
-            <Flag size={20} />
-            <span className="text-[9px] font-bold uppercase tracking-widest">Flag-In</span>
+            <Flag size={18} />
+            <span className="text-[8px] font-bold uppercase tracking-wider text-center">Flag-In</span>
           </button>
           <button 
             onClick={() => setActiveTab('control')}
-            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
+            className={`flex flex-col items-center gap-1 transition-all ${
               activeTab === 'control' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
             }`}
           >
-            <MapPin size={20} />
-            <span className="text-[9px] font-bold uppercase tracking-widest">Hole Ctrl</span>
+            <MapPin size={18} />
+            <span className="text-[8px] font-bold uppercase tracking-wider text-center">Hole Ctrl</span>
           </button>
           <button 
             onClick={() => setActiveTab('summary')}
-            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
+            className={`flex flex-col items-center gap-1 transition-all ${
               activeTab === 'summary' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
             }`}
           >
-            <BarChart2 size={20} />
-            <span className="text-[9px] font-bold uppercase tracking-widest">Hole Timing</span>
+            <BarChart2 size={18} />
+            <span className="text-[8px] font-bold uppercase tracking-wider text-center">Timing</span>
           </button>
           <button 
             onClick={() => setActiveTab('history')}
-            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
+            className={`flex flex-col items-center gap-1 transition-all ${
               activeTab === 'history' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
             }`}
           >
             <div className="relative">
-              <History size={20} />
+              <History size={18} />
               {records.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-[7px] font-black text-white flex items-center justify-center rounded-full border border-zinc-900">
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-[6px] font-black text-white flex items-center justify-center rounded-full border border-zinc-900">
                   {records.length}
                 </span>
               )}
             </div>
-            <span className="text-[9px] font-bold uppercase tracking-widest">History</span>
+            <span className="text-[8px] font-bold uppercase tracking-wider text-center">History</span>
           </button>
         </div>
       </nav>

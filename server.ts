@@ -22,11 +22,6 @@ async function startServer() {
     next();
   });
 
-  // Health check
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "ok" });
-  });
-
   // Lazy initialize AI client to avoid crash if key is missing on startup
   let aiClient: GoogleGenAI | null = null;
   function getAI() {
@@ -39,6 +34,11 @@ async function startServer() {
     }
     return aiClient;
   }
+
+  // Health check
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok" });
+  });
 
   // Parse PDF endpoint
   app.post("/api/parse-pdf", async (req, res) => {
@@ -119,7 +119,7 @@ async function startServer() {
       const text = result.response.text();
       res.json(JSON.parse(text));
     } catch (error) {
-      console.error("error during pdf parsing:", error);
+      console.error("[API] Error during pdf parsing:", error);
       res.status(500).json({ error: error instanceof Error ? error.message : "Failed to parse PDF" });
     }
   });
