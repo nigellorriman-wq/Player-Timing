@@ -137,9 +137,22 @@ export const TournamentSetup: React.FC<TournamentSetupProps> = ({ onSetupComplet
         body: JSON.stringify({ base64Data })
       });
 
+      const contentType = response.headers.get('content-type');
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Failed to parse PDF');
+        if (contentType && contentType.includes('application/json')) {
+          const errData = await response.json();
+          throw new Error(errData.error || 'Failed to parse PDF');
+        } else {
+          const text = await response.text();
+          console.error('Server error (HTML):', text);
+          throw new Error(`Server returned error ${response.status}: ${text.slice(0, 100)}...`);
+        }
+      }
+
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Expected JSON, got:', text);
+        throw new Error('Server did not return JSON. It might be a 404 page.');
       }
 
       const parsed = await response.json();

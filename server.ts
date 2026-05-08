@@ -16,6 +16,18 @@ async function startServer() {
 
   app.use(express.json({ limit: '10mb' }));
 
+  // Debug middleware
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+  });
+
+  const apiRouter = express.Router();
+
+  apiRouter.get("/health", (req, res) => {
+    res.json({ status: "ok" });
+  });
+
   // Lazy initialize AI client to avoid crash if key is missing on startup
   let aiClient: GoogleGenAI | null = null;
   function getAI() {
@@ -29,15 +41,16 @@ async function startServer() {
     return aiClient;
   }
 
-  app.post("/api/parse-pdf", async (req, res) => {
+  apiRouter.post("/parse-pdf", async (req, res) => {
     try {
+      console.log("Parsing PDF...");
       const { base64Data } = req.body;
       if (!base64Data) {
         return res.status(400).json({ error: "Missing base64Data" });
       }
 
       const ai = getAI();
-      const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" }); // Using 1.5-flash which is standard
+      const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const result = await model.generateContent({
         contents: [
@@ -108,6 +121,8 @@ async function startServer() {
       res.status(500).json({ error: error instanceof Error ? error.message : "Failed to parse PDF" });
     }
   });
+
+  app.use("/api", apiRouter);
 
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
