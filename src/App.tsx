@@ -145,6 +145,10 @@ export default function App() {
             <LostBallTimer 
               onRecordAdded={handleRecordAdded} 
               tournamentInfo={tournament} 
+              hole={activeHole}
+              setHole={setActiveHole}
+              group={activeGroup}
+              setGroup={setActiveGroup}
             />
           )}
           {activeTab === 'shot' && (
@@ -152,6 +156,10 @@ export default function App() {
               onRecordAdded={handleRecordAdded} 
               records={records} 
               tournamentInfo={tournament}
+              hole={activeHole}
+              setHole={setActiveHole}
+              group={activeGroup}
+              setGroup={setActiveGroup}
             />
           )}
           {activeTab === 'history' && (

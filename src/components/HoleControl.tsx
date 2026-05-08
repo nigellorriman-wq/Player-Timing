@@ -185,7 +185,7 @@ export const HoleControl: React.FC<HoleControlProps> = ({
                     )}
                   </div>
                   <div className="text-[10px] text-gray-400 font-medium uppercase line-clamp-1 max-w-[200px]">
-                    {gPace.group.players.map(p => formatCompactName(p.name)).join(' • ')}
+                    {gPace.group.players.map(p => formatCompactName(p)).join(' • ')}
                   </div>
                 </div>
                 <div className="text-right">

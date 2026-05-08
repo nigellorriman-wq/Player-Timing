@@ -101,11 +101,14 @@ export const FlagInTimer: React.FC<FlagInTimerProps> = ({
             className="w-full bg-transparent text-xl font-black outline-none cursor-pointer appearance-none"
           >
             {tournamentInfo && tournamentInfo.groups.length > 0 ? (
-              tournamentInfo.groups.map(g => (
-                <option key={g.groupNumber} value={g.groupNumber} className="bg-zinc-900">
-                  G{g.groupNumber} (@{g.startTime}) - {g.players.map(p => formatCompactName(p.name)).join(', ')}
-                </option>
-              ))
+              tournamentInfo.groups.map(g => {
+                const target = calculateTargetTime(g.groupNumber, hole, tournamentInfo);
+                return (
+                  <option key={g.groupNumber} value={g.groupNumber} className="bg-zinc-900">
+                    G{g.groupNumber} (@{g.startTime} → {target.time}) - {g.players.map(p => formatCompactName(p)).join(', ')}
+                  </option>
+                );
+              })
             ) : (
               Array.from({ length: 50 }, (_, i) => String(i + 1)).map(n => (
                 <option key={n} value={n} className="bg-zinc-900">G{n}</option>

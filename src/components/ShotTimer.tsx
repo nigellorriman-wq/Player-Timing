@@ -2,19 +2,50 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Play, Square, User, Hash, Flag, ChevronRight, AlertTriangle, CheckCircle, Pause, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PlayerShotRecord, TournamentInfo, TimerType } from '../types';
+import { calculateTargetTime } from '../utils/paceUtils';
 
 interface ShotTimerProps {
   onRecordAdded: (record: PlayerShotRecord) => void;
   records: PlayerShotRecord[];
   tournamentInfo?: TournamentInfo;
+  hole: string;
+  setHole: (hole: string) => void;
+  group: string;
+  setGroup: (group: string) => void;
 }
 
-export default function ShotTimer({ onRecordAdded, records, tournamentInfo }: ShotTimerProps) {
-  const [hole, setHole] = useState('1');
-  const [group, setGroup] = useState('1');
+export default function ShotTimer({ 
+  onRecordAdded, 
+  records, 
+  tournamentInfo,
+  hole,
+  setHole,
+  group,
+  setGroup
+}: ShotTimerProps) {
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
   const [isFirstToPlay, setIsFirstToPlay] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Automatically select the most likely group when the component mounts or hole changes
+  useEffect(() => {
+    if (tournamentInfo && tournamentInfo.groups.length > 0) {
+      const now = new Date();
+      
+      // Calculate target times for all groups at this hole
+      const groupProximity = tournamentInfo.groups.map(g => {
+        const pace = calculateTargetTime(g.groupNumber, hole, tournamentInfo);
+        const diff = Math.abs(pace.date.getTime() - now.getTime());
+        return { group: g, diff };
+      });
+
+      // Find group closest to current time
+      const closest = groupProximity.sort((a, b) => a.diff - b.diff)[0];
+      if (closest) {
+        setGroup(closest.group.groupNumber);
+      }
+    }
+  }, [hole, tournamentInfo]);
 
   // Update clock every minute for pace calculation
   useEffect(() => {
@@ -161,9 +192,14 @@ export default function ShotTimer({ onRecordAdded, records, tournamentInfo }: Sh
             className="w-full bg-transparent text-lg font-bold outline-none cursor-pointer"
           >
             {tournamentInfo && tournamentInfo.groups.length > 0 ? (
-              tournamentInfo.groups.map(g => (
-                <option key={g.groupNumber} value={g.groupNumber} className="bg-zinc-900">{g.groupNumber}</option>
-              ))
+              tournamentInfo.groups.map(g => {
+                const target = calculateTargetTime(g.groupNumber, hole, tournamentInfo);
+                return (
+                  <option key={g.groupNumber} value={g.groupNumber} className="bg-zinc-900">
+                    G{g.groupNumber} (@{g.startTime} → {target.time})
+                  </option>
+                );
+              })
             ) : (
               Array.from({ length: 50 }, (_, i) => String(i + 1)).map(n => (
                 <option key={n} value={n} className="bg-zinc-900">{n}</option>
