@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Papa from 'papaparse';
 import { Upload, X, Check, FileText, Trophy, Calendar, FileType, Sparkles, Loader2 } from 'lucide-react';
-import { GoogleGenAI, Type } from "@google/genai";
 import { TournamentInfo, HolePace, GroupData } from '../types';
 
 interface TournamentSetupProps {
@@ -131,71 +130,18 @@ export const TournamentSetup: React.FC<TournamentSetupProps> = ({ onSetupComplet
       reader.readAsDataURL(file);
       const base64Data = await base64Promise;
 
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error("GEMINI_API_KEY is not configured.");
-      }
-
-      const ai = new GoogleGenAI({ apiKey });
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                inlineData: {
-                  mimeType: "application/pdf",
-                  data: base64Data,
-                },
-              },
-              {
-                text: "Extract tournament information from this golf start list. Include tournament name, round number, group numbers, start times, starting tees, players (full names), and pace of play (minutes per hole for holes 1-18).",
-              },
-            ],
-          },
-        ],
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              name: { type: Type.STRING },
-              round: { type: Type.STRING },
-              paceOfPlay: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    hole: { type: Type.NUMBER },
-                    minutes: { type: Type.NUMBER },
-                  },
-                  required: ["hole", "minutes"],
-                },
-              },
-              groups: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    groupNumber: { type: Type.STRING },
-                    startTime: { type: Type.STRING },
-                    startingTee: { type: Type.NUMBER },
-                    players: {
-                      type: Type.ARRAY,
-                      items: { type: Type.STRING },
-                    },
-                  },
-                  required: ["groupNumber", "startTime", "players"],
-                },
-              },
-            },
-            required: ["name", "round", "paceOfPlay", "groups"],
-          },
-        }
+      const response = await fetch('/api/parse-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ base64Data })
       });
-
-      const parsed = JSON.parse(response.text || '{}');
+ 
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({ error: 'Failed to parse PDF' }));
+        throw new Error(errData.error || `Server returned error ${response.status}`);
+      }
+ 
+      const parsed = await response.json();
       if (parsed.name) setName(parsed.name);
       if (parsed.round) setRound(String(parsed.round));
       if (parsed.paceOfPlay) setPaceData(parsed.paceOfPlay);
