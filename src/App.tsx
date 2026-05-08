@@ -208,77 +208,79 @@ export default function App() {
       </main>
 
       {/* Navigation Bar */}
-      <nav className="px-1 py-2 pb-6 flex items-center justify-around border-t border-zinc-800 bg-zinc-900 bg-opacity-80 backdrop-blur-xl shrink-0">
-        <button 
-          onClick={() => setActiveTab('tournament')}
-          className={`flex flex-col items-center gap-0.5 transition-all ${
-            activeTab === 'tournament' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
-          }`}
-        >
-          <Trophy size={20} />
-          <span className="text-[9px] font-bold uppercase tracking-widest">Setup</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('lost')}
-          className={`flex flex-col items-center gap-0.5 transition-all ${
-            activeTab === 'lost' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
-          }`}
-        >
-          <Timer size={20} />
-          <span className="text-[9px] font-bold uppercase tracking-widest">Lost Ball</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('shot')}
-          className={`flex flex-col items-center gap-0.5 transition-all ${
-            activeTab === 'shot' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
-          }`}
-        >
-          <LayoutGrid size={20} />
-          <span className="text-[9px] font-bold uppercase tracking-widest">Shot Clock</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('flag')}
-          className={`flex flex-col items-center gap-0.5 transition-all ${
-            activeTab === 'flag' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
-          }`}
-        >
-          <Flag size={20} />
-          <span className="text-[9px] font-bold uppercase tracking-widest">Flag-In</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('control')}
-          className={`flex flex-col items-center gap-0.5 transition-all ${
-            activeTab === 'control' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
-          }`}
-        >
-          <MapPin size={20} />
-          <span className="text-[9px] font-bold uppercase tracking-widest">Hole Ctrl</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('summary')}
-          className={`flex flex-col items-center gap-0.5 transition-all ${
-            activeTab === 'summary' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
-          }`}
-        >
-          <BarChart2 size={20} />
-          <span className="text-[9px] font-bold uppercase tracking-widest">Hole Timing</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('history')}
-          className={`flex flex-col items-center gap-0.5 transition-all ${
-            activeTab === 'history' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
-          }`}
-        >
-          <div className="relative">
-            <History size={20} />
-            {records.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-[7px] font-black text-white flex items-center justify-center rounded-full border border-zinc-900">
-                {records.length}
-              </span>
-            )}
-          </div>
-          <span className="text-[9px] font-bold uppercase tracking-widest">History</span>
-        </button>
+      <nav className="border-t border-zinc-800 bg-zinc-900 bg-opacity-80 backdrop-blur-xl shrink-0 overflow-x-auto no-scrollbar">
+        <div className="px-4 py-2 pb-6 flex items-center justify-between sm:justify-around min-w-max gap-6 mx-auto">
+          <button 
+            onClick={() => setActiveTab('tournament')}
+            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
+              activeTab === 'tournament' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
+            }`}
+          >
+            <Trophy size={20} />
+            <span className="text-[9px] font-bold uppercase tracking-widest">Setup</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('lost')}
+            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
+              activeTab === 'lost' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
+            }`}
+          >
+            <Timer size={20} />
+            <span className="text-[9px] font-bold uppercase tracking-widest">Lost Ball</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('shot')}
+            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
+              activeTab === 'shot' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
+            }`}
+          >
+            <LayoutGrid size={20} />
+            <span className="text-[9px] font-bold uppercase tracking-widest">Shot Clock</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('flag')}
+            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
+              activeTab === 'flag' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
+            }`}
+          >
+            <Flag size={20} />
+            <span className="text-[9px] font-bold uppercase tracking-widest">Flag-In</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('control')}
+            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
+              activeTab === 'control' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
+            }`}
+          >
+            <MapPin size={20} />
+            <span className="text-[9px] font-bold uppercase tracking-widest">Hole Ctrl</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('summary')}
+            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
+              activeTab === 'summary' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
+            }`}
+          >
+            <BarChart2 size={20} />
+            <span className="text-[9px] font-bold uppercase tracking-widest">Hole Timing</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('history')}
+            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
+              activeTab === 'history' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
+            }`}
+          >
+            <div className="relative">
+              <History size={20} />
+              {records.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-[7px] font-black text-white flex items-center justify-center rounded-full border border-zinc-900">
+                  {records.length}
+                </span>
+              )}
+            </div>
+            <span className="text-[9px] font-bold uppercase tracking-widest">History</span>
+          </button>
+        </div>
       </nav>
       
       {/* Global CSS for Forced Portrait feel */}
@@ -287,6 +289,13 @@ export default function App() {
           overscroll-behavior-y: contain;
           background: black;
           overflow: hidden;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
         select {
           appearance: none;
