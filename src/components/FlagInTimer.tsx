@@ -65,6 +65,15 @@ export const FlagInTimer: React.FC<FlagInTimerProps> = ({
     };
 
     onRecordAdded(record);
+
+    // After recording, try to advance to the next group in the tournament
+    if (tournamentInfo && tournamentInfo.groups) {
+      const currentIndex = tournamentInfo.groups.findIndex(g => g.groupNumber === group);
+      if (currentIndex !== -1 && currentIndex < tournamentInfo.groups.length - 1) {
+        setGroup(tournamentInfo.groups[currentIndex + 1].groupNumber);
+      }
+    }
+
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 2000);
   };

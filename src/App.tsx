@@ -201,6 +201,7 @@ export default function App() {
               tournamentInfo={tournament}
               selectedHole={activeHole}
               setSelectedHole={setActiveHole}
+              setActiveGroup={setActiveGroup}
             />
           )}
         </div>

@@ -10,6 +10,7 @@ interface HoleControlProps {
   tournamentInfo?: TournamentInfo;
   selectedHole: string;
   setSelectedHole: (hole: string) => void;
+  setActiveGroup: (group: string) => void;
 }
 
 export const HoleControl: React.FC<HoleControlProps> = ({ 
@@ -17,7 +18,8 @@ export const HoleControl: React.FC<HoleControlProps> = ({
   records, 
   tournamentInfo,
   selectedHole,
-  setSelectedHole
+  setSelectedHole,
+  setActiveGroup
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showSuccess, setShowSuccess] = useState(false);
@@ -62,6 +64,19 @@ export const HoleControl: React.FC<HoleControlProps> = ({
     };
 
     onRecordAdded(record);
+
+    // After recording, find the next available group to set as active
+    // We filter out the current group because the update to 'records' prop 
+    // might not have propagated through the parent re-render yet for this immediate calculation
+    const remainingGroups = availableGroups.filter(g => g.group.groupNumber !== groupNumber);
+    if (remainingGroups.length > 0) {
+      // Try to find the next expected one among remains
+      const nowMs = new Date().getTime();
+      const nextIdx = remainingGroups.findIndex(g => g.pace.date.getTime() >= nowMs);
+      const nextGroup = nextIdx === -1 ? remainingGroups[0] : remainingGroups[nextIdx];
+      setActiveGroup(nextGroup.group.groupNumber);
+    }
+
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 2000);
   };
