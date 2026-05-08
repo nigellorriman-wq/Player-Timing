@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Papa from 'papaparse';
 import { Upload, X, Check, FileText, Trophy, Calendar, FileType, Sparkles, Loader2 } from 'lucide-react';
+import { GoogleGenAI, Type } from "@google/genai";
 import { TournamentInfo, HolePace, GroupData } from '../types';
 
 interface TournamentSetupProps {
@@ -83,7 +84,6 @@ export const TournamentSetup: React.FC<TournamentSetupProps> = ({ onSetupComplet
               const p3 = row['PLAYER 3'] || row.Player3 || row.player3;
               const p4 = row['PLAYER 4'] || row.Player4 || row.player4;
               
-              // Extract pre-calculated hole times (hole1, hole2, etc.)
               const holeTimes: Record<string, string> = {};
               Object.keys(row).forEach(key => {
                 const holeMatch = key.toLowerCase().match(/^hole\s*(\d+)$/);
@@ -131,31 +131,71 @@ export const TournamentSetup: React.FC<TournamentSetupProps> = ({ onSetupComplet
       reader.readAsDataURL(file);
       const base64Data = await base64Promise;
 
-      const response = await fetch('/api/parse-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ base64Data })
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("GEMINI_API_KEY is not configured.");
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                inlineData: {
+                  mimeType: "application/pdf",
+                  data: base64Data,
+                },
+              },
+              {
+                text: "Extract tournament information from this golf start list. Include tournament name, round number, group numbers, start times, starting tees, players (full names), and pace of play (minutes per hole for holes 1-18).",
+              },
+            ],
+          },
+        ],
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              round: { type: Type.STRING },
+              paceOfPlay: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    hole: { type: Type.NUMBER },
+                    minutes: { type: Type.NUMBER },
+                  },
+                  required: ["hole", "minutes"],
+                },
+              },
+              groups: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    groupNumber: { type: Type.STRING },
+                    startTime: { type: Type.STRING },
+                    startingTee: { type: Type.NUMBER },
+                    players: {
+                      type: Type.ARRAY,
+                      items: { type: Type.STRING },
+                    },
+                  },
+                  required: ["groupNumber", "startTime", "players"],
+                },
+              },
+            },
+            required: ["name", "round", "paceOfPlay", "groups"],
+          },
+        }
       });
 
-      const contentType = response.headers.get('content-type');
-      if (!response.ok) {
-        if (contentType && contentType.includes('application/json')) {
-          const errData = await response.json();
-          throw new Error(errData.error || 'Failed to parse PDF');
-        } else {
-          const text = await response.text();
-          console.error('Server error (HTML):', text);
-          throw new Error(`Server returned error ${response.status}: ${text.slice(0, 100)}...`);
-        }
-      }
-
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        console.error('Expected JSON, got:', text);
-        throw new Error('Server did not return JSON. It might be a 404 page.');
-      }
-
-      const parsed = await response.json();
+      const parsed = JSON.parse(response.text || '{}');
       if (parsed.name) setName(parsed.name);
       if (parsed.round) setRound(String(parsed.round));
       if (parsed.paceOfPlay) setPaceData(parsed.paceOfPlay);

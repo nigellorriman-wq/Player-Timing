@@ -208,11 +208,11 @@ export default function App() {
       </main>
 
       {/* Navigation Bar */}
-      <nav className="px-1 py-2 pb-6 flex items-center justify-around border-t border-zinc-800 bg-zinc-900 bg-opacity-80 backdrop-blur-xl shrink-0 overflow-x-auto no-scrollbar">
-        <div className="flex items-center gap-4 px-4 min-w-max">
+      <nav className="border-t border-zinc-800 bg-zinc-900 bg-opacity-80 backdrop-blur-xl shrink-0">
+        <div className="px-4 py-2 pb-6 flex items-center justify-between sm:justify-around min-w-max gap-6 mx-auto">
           <button 
             onClick={() => setActiveTab('tournament')}
-            className={`flex flex-col items-center gap-0.5 transition-all ${
+            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
               activeTab === 'tournament' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
             }`}
           >
@@ -221,7 +221,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => setActiveTab('lost')}
-            className={`flex flex-col items-center gap-0.5 transition-all ${
+            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
               activeTab === 'lost' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
             }`}
           >
@@ -230,7 +230,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => setActiveTab('shot')}
-            className={`flex flex-col items-center gap-0.5 transition-all ${
+            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
               activeTab === 'shot' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
             }`}
           >
@@ -239,7 +239,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => setActiveTab('flag')}
-            className={`flex flex-col items-center gap-0.5 transition-all ${
+            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
               activeTab === 'flag' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
             }`}
           >
@@ -248,7 +248,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => setActiveTab('control')}
-            className={`flex flex-col items-center gap-0.5 transition-all ${
+            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
               activeTab === 'control' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
             }`}
           >
@@ -257,7 +257,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => setActiveTab('summary')}
-            className={`flex flex-col items-center gap-0.5 transition-all ${
+            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
               activeTab === 'summary' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
             }`}
           >
@@ -266,7 +266,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => setActiveTab('history')}
-            className={`flex flex-col items-center gap-0.5 transition-all ${
+            className={`flex flex-col items-center gap-0.5 transition-all shrink-0 ${
               activeTab === 'history' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
             }`}
           >
