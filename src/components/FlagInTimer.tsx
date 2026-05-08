@@ -1,55 +1,36 @@
 import React, { useState } from 'react';
 import { Flag, Hash, Clock, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { PlayerShotRecord, TournamentInfo, TimerType, HolePace } from '../types';
+import { PlayerShotRecord, TournamentInfo, TimerType } from '../types';
+import { calculateTargetTime } from '../utils/paceUtils';
 
 interface FlagInTimerProps {
   onRecordAdded: (record: PlayerShotRecord) => void;
   tournamentInfo?: TournamentInfo;
+  hole: string;
+  setHole: (hole: string) => void;
+  group: string;
+  setGroup: (group: string) => void;
 }
 
-export const FlagInTimer: React.FC<FlagInTimerProps> = ({ onRecordAdded, tournamentInfo }) => {
-  const [hole, setHole] = useState('1');
-  const [group, setGroup] = useState('1');
+export const FlagInTimer: React.FC<FlagInTimerProps> = ({ 
+  onRecordAdded, 
+  tournamentInfo,
+  hole,
+  setHole,
+  group,
+  setGroup
+}) => {
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const calculateTargetTime = (groupNum: string, holeNum: string): { time: string; minutes: number } => {
-    if (!tournamentInfo) return { time: '00:00', minutes: 0 };
-    
-    const grp = tournamentInfo.groups.find(g => g.groupNumber === groupNum);
-    if (!grp) return { time: '00:00', minutes: 0 };
-
-    const startHole = grp.startingTee === 10 ? 10 : 1;
-    const targetHoleIdx = parseInt(holeNum);
-    
-    let totalMinutes = 0;
-    // Calculate cumulative pace based on starting tee
-    if (grp.startingTee === 1) {
-      for (let i = 1; i <= targetHoleIdx; i++) {
-        const pace = tournamentInfo.paceOfPlay.find(p => p.hole === i);
-        if (pace) totalMinutes += pace.minutes;
-      }
-    } else {
-      // Starting from 10
-      // 10, 11, 12, 13, 14, 15, 16, 17, 18, 1, 2, 3, 4, 5, 6, 7, 8, 9
-      const sequence = [10,11,12,13,14,15,16,17,18,1,2,3,4,5,6,7,8,9];
-      const targetIdxInSeq = sequence.indexOf(targetHoleIdx);
-      if (targetIdxInSeq !== -1) {
-        for (let i = 0; i <= targetIdxInSeq; i++) {
-          const pace = tournamentInfo.paceOfPlay.find(p => p.hole === sequence[i]);
-          if (pace) totalMinutes += pace.minutes;
-        }
-      }
-    }
-
-    const [startH, startM] = grp.startTime.split(':').map(Number);
-    const date = new Date();
-    date.setHours(startH, startM + totalMinutes, 0, 0);
-    
-    return {
-      time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-      minutes: totalMinutes
-    };
+  // Format names compactly
+  const formatCompactName = (fullName: string) => {
+    if (!fullName) return '';
+    const parts = fullName.trim().split(' ');
+    if (parts.length <= 1) return fullName;
+    const lastName = parts[parts.length - 1];
+    const initial = parts[0][0];
+    return `${initial}. ${lastName}`;
   };
 
   const handleRecordFlagIn = () => {
@@ -59,7 +40,7 @@ export const FlagInTimer: React.FC<FlagInTimerProps> = ({ onRecordAdded, tournam
     const actualM = now.getMinutes();
     const actualFormatted = `${actualH.toString().padStart(2, '0')}:${actualM.toString().padStart(2, '0')}`;
     
-    const target = calculateTargetTime(group, hole);
+    const target = calculateTargetTime(group, hole, tournamentInfo);
     const [targetH, targetM] = target.time.split(':').map(Number);
     
     // Calculate difference in minutes
@@ -86,7 +67,7 @@ export const FlagInTimer: React.FC<FlagInTimerProps> = ({ onRecordAdded, tournam
     setTimeout(() => setShowSuccess(false), 2000);
   };
 
-  const targetInfo = calculateTargetTime(group, hole);
+  const targetInfo = calculateTargetTime(group, hole, tournamentInfo);
 
   return (
     <div className="flex flex-col h-full p-4 bg-[#111] text-white overflow-y-auto">
@@ -121,7 +102,9 @@ export const FlagInTimer: React.FC<FlagInTimerProps> = ({ onRecordAdded, tournam
           >
             {tournamentInfo && tournamentInfo.groups.length > 0 ? (
               tournamentInfo.groups.map(g => (
-                <option key={g.groupNumber} value={g.groupNumber} className="bg-zinc-900">G{g.groupNumber}</option>
+                <option key={g.groupNumber} value={g.groupNumber} className="bg-zinc-900">
+                  G{g.groupNumber} (@{g.startTime}) - {g.players.map(p => formatCompactName(p.name)).join(', ')}
+                </option>
               ))
             ) : (
               Array.from({ length: 50 }, (_, i) => String(i + 1)).map(n => (

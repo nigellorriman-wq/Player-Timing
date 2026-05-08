@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Timer, Hash, Flag, User, MapPin } from 'lucide-react';
+import { Play, Pause, RotateCcw, Timer, Hash, Flag, User, MapPin, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PlayerShotRecord, TournamentInfo, TimerType } from '../types';
 
@@ -75,6 +75,12 @@ export default function LostBallTimer({ onRecordAdded, tournamentInfo }: LostBal
     setIsActive(false);
     setTimeLeft(180);
     setLocation(null);
+  };
+
+  const handleStop = () => {
+    setIsActive(false);
+    saveSearchRecord();
+    resetTimer();
   };
 
   const saveSearchRecord = () => {
@@ -184,22 +190,38 @@ export default function LostBallTimer({ onRecordAdded, tournamentInfo }: LostBal
           </div>
         )}
 
-        <div className="flex gap-8">
+        <div className="flex gap-4 sm:gap-8 items-center">
+          <button
+            onClick={resetTimer}
+            className="p-4 rounded-full bg-zinc-900 text-white hover:bg-zinc-800 transition-all border border-zinc-700"
+            title="Reset Timer"
+          >
+            <RotateCcw size={24} />
+          </button>
+
           <button
             onClick={toggleTimer}
-            className={`p-8 rounded-full transition-all shadow-xl ${
+            className={`p-10 rounded-full transition-all shadow-xl ${
               isActive 
                 ? 'bg-zinc-800 text-white' 
                 : 'bg-[#FFDD00] text-black hover:scale-105'
             }`}
+            title={isActive ? "Pause Search" : "Start Search"}
           >
             {isActive ? <Pause size={48} /> : <Play size={48} fill="currentColor" />}
           </button>
+
           <button
-            onClick={resetTimer}
-            className="p-8 rounded-full bg-zinc-900 text-white hover:bg-zinc-800 transition-all border border-zinc-700"
+            onClick={handleStop}
+            disabled={timeLeft === 180}
+            className={`p-6 rounded-full transition-all border shadow-lg ${
+              timeLeft === 180 
+                ? 'bg-zinc-900 border-zinc-800 text-zinc-700 opacity-50 cursor-not-allowed' 
+                : 'bg-red-600 border-red-500 text-white hover:bg-red-500'
+            }`}
+            title="Stop & Record Found Ball"
           >
-            <RotateCcw size={48} />
+            <Square size={32} fill="currentColor" />
           </button>
         </div>
       </div>
@@ -216,15 +238,6 @@ export default function LostBallTimer({ onRecordAdded, tournamentInfo }: LostBal
           </motion.div>
         )}
       </AnimatePresence>
-
-      {!isExpired && !isActive && timeLeft < 180 && (
-        <button
-          onClick={saveSearchRecord}
-          className="mt-6 w-full py-4 bg-zinc-800 text-white font-bold rounded-xl border border-zinc-700 uppercase text-xs tracking-widest hover:bg-zinc-700 transition-colors"
-        >
-          Confirm Search Ended
-        </button>
-      )}
     </div>
   );
 }

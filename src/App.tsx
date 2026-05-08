@@ -1,17 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Timer, LayoutGrid, History, ShieldAlert, Trophy, BarChart2, Flag } from 'lucide-react';
+import { Timer, LayoutGrid, History, ShieldAlert, Trophy, BarChart2, Flag, MapPin } from 'lucide-react';
 import LostBallTimer from './components/LostBallTimer';
 import ShotTimer from './components/ShotTimer';
 import SessionHistory from './components/SessionHistory';
 import { HoleTimings } from './components/HoleTimings';
 import { FlagInTimer } from './components/FlagInTimer';
+import { HoleControl } from './components/HoleControl';
 import { TournamentSetup } from './components/TournamentSetup';
 import { PlayerShotRecord, TournamentInfo } from './types';
 import { useWakeLock } from './hooks/useWakeLock';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'lost' | 'shot' | 'history' | 'tournament' | 'summary' | 'flag'>('shot');
+  const [activeTab, setActiveTab] = useState<'lost' | 'shot' | 'history' | 'tournament' | 'summary' | 'flag' | 'control'>('shot');
+  const [activeHole, setActiveHole] = useState<string>(() => localStorage.getItem('golf-active-hole') || '1');
+  const [activeGroup, setActiveGroup] = useState<string>(() => localStorage.getItem('golf-active-group') || '1');
   const [records, setRecords] = useState<PlayerShotRecord[]>([]);
+
+
+  // Save active hole and group to localStorage
+  useEffect(() => {
+    localStorage.setItem('golf-active-hole', activeHole);
+  }, [activeHole]);
+
+  useEffect(() => {
+    localStorage.setItem('golf-active-group', activeGroup);
+  }, [activeGroup]);
   const [tournament, setTournament] = useState<TournamentInfo | undefined>(() => {
     const saved = localStorage.getItem('golf-tournament-info');
     if (saved) {
@@ -167,6 +180,19 @@ export default function App() {
             <FlagInTimer 
               onRecordAdded={handleRecordAdded}
               tournamentInfo={tournament}
+              hole={activeHole}
+              setHole={setActiveHole}
+              group={activeGroup}
+              setGroup={setActiveGroup}
+            />
+          )}
+          {activeTab === 'control' && (
+            <HoleControl 
+              onRecordAdded={handleRecordAdded}
+              records={records}
+              tournamentInfo={tournament}
+              selectedHole={activeHole}
+              setSelectedHole={setActiveHole}
             />
           )}
         </div>
@@ -209,6 +235,15 @@ export default function App() {
         >
           <Flag size={20} />
           <span className="text-[9px] font-bold uppercase tracking-widest">Flag-In</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('control')}
+          className={`flex flex-col items-center gap-0.5 transition-all ${
+            activeTab === 'control' ? 'text-[#FFDD00] scale-105' : 'text-zinc-500'
+          }`}
+        >
+          <MapPin size={20} />
+          <span className="text-[9px] font-bold uppercase tracking-widest">Hole Ctrl</span>
         </button>
         <button 
           onClick={() => setActiveTab('summary')}
