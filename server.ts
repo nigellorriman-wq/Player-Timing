@@ -18,13 +18,12 @@ async function startServer() {
 
   // Debug middleware
   app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url}`);
+    console.log(`[SERVER] ${req.method} ${req.url}`);
     next();
   });
 
-  const apiRouter = express.Router();
-
-  apiRouter.get("/health", (req, res) => {
+  // Health check
+  app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
   });
 
@@ -41,14 +40,17 @@ async function startServer() {
     return aiClient;
   }
 
-  apiRouter.post("/parse-pdf", async (req, res) => {
+  // Parse PDF endpoint
+  app.post("/api/parse-pdf", async (req, res) => {
     try {
-      console.log("Parsing PDF...");
+      console.log("[API] Parsing PDF request received");
       const { base64Data } = req.body;
       if (!base64Data) {
+        console.error("[API] Missing base64Data in request");
         return res.status(400).json({ error: "Missing base64Data" });
       }
 
+      console.log("[API] Calling Gemini...");
       const ai = getAI();
       const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -121,8 +123,6 @@ async function startServer() {
       res.status(500).json({ error: error instanceof Error ? error.message : "Failed to parse PDF" });
     }
   });
-
-  app.use("/api", apiRouter);
 
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
