@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Flag, Hash, Clock, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PlayerShotRecord, TournamentInfo, TimerType } from '../types';
@@ -22,15 +22,17 @@ export const FlagInTimer: React.FC<FlagInTimerProps> = ({
   setGroup
 }) => {
   const [showSuccess, setShowSuccess] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Format names compactly
-  const formatCompactName = (fullName: string) => {
-    if (!fullName) return '';
-    const parts = fullName.trim().split(' ');
-    if (parts.length <= 1) return fullName;
-    const lastName = parts[parts.length - 1];
-    const initial = parts[0][0];
-    return `${initial}. ${lastName}`;
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format names to first 8 characters
+  const formatCompactName = (name: string) => {
+    if (!name) return '';
+    return name.substring(0, 8);
   };
 
   const handleRecordFlagIn = () => {
@@ -123,10 +125,41 @@ export const FlagInTimer: React.FC<FlagInTimerProps> = ({
           <div className="p-2 bg-zinc-900 rounded-lg">
             <Clock size={16} className="text-[#FFDD00]" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col items-center">
             <h4 className="text-[10px] text-gray-500 uppercase font-black tracking-widest leading-none mb-1 text-center">Required Time of Finish</h4>
-            <div className="text-4xl font-black text-center tabular-nums leading-tight">
-              {targetInfo.time}
+            <div className="flex items-baseline gap-4">
+              <div className={`text-4xl font-black tabular-nums leading-tight ${
+                (() => {
+                  const nowMs = currentTime.getTime();
+                  const targetMs = targetInfo.date.getTime();
+                  const diffMin = (nowMs - targetMs) / 60000;
+                  if (diffMin <= 0) return 'text-green-500';
+                  if (diffMin <= 3) return 'text-amber-500';
+                  return 'text-red-500';
+                })()
+              }`}>
+                {targetInfo.time}
+              </div>
+              <div className={`text-2xl font-black tabular-nums ${
+                (() => {
+                  const nowMs = currentTime.getTime();
+                  const targetMs = targetInfo.date.getTime();
+                  const diffMs = nowMs - targetMs;
+                  const diffMin = diffMs / 60000;
+                  if (diffMin <= 0) return 'text-green-500';
+                  if (diffMin <= 3) return 'text-amber-500';
+                  return 'text-red-500';
+                })()
+              }`}>
+                {(() => {
+                  const nowMs = currentTime.getTime();
+                  const targetMs = targetInfo.date.getTime();
+                  const diffMs = Math.abs(nowMs - targetMs);
+                  const mins = Math.floor(diffMs / 60000);
+                  const secs = Math.floor((diffMs % 60000) / 1000);
+                  return `${nowMs > targetMs ? '+' : '-'}${mins}:${secs.toString().padStart(2, '0')}`;
+                })()}
+              </div>
             </div>
             <p className="text-[9px] text-gray-400 text-center uppercase font-bold mt-1">
               (Cumulative Pace: {targetInfo.minutes} mins)

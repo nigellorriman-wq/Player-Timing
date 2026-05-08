@@ -6,6 +6,26 @@ export const calculateTargetTime = (groupNum: string, holeNum: string, tournamen
   const grp = tournamentInfo.groups.find(g => g.groupNumber === groupNum);
   if (!grp) return { time: '00:00', minutes: 0, date: new Date() };
 
+  // Check for pre-calculated hole time
+  if (grp.holeTimes && grp.holeTimes[holeNum]) {
+    const timeStr = grp.holeTimes[holeNum];
+    const [h, m] = timeStr.split(':').map(Number);
+    const date = new Date();
+    date.setHours(h, m, 0, 0);
+    
+    // Calculate minutes relative to start time for display
+    const [startH, startM] = grp.startTime.split(':').map(Number);
+    const startDate = new Date();
+    startDate.setHours(startH, startM, 0, 0);
+    const totalMinutes = Math.round((date.getTime() - startDate.getTime()) / 60000);
+
+    return {
+      time: timeStr,
+      minutes: totalMinutes,
+      date
+    };
+  }
+
   const targetHoleIdx = parseInt(holeNum);
   
   let totalMinutes = 0;

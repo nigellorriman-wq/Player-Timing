@@ -19,7 +19,6 @@ export const HoleControl: React.FC<HoleControlProps> = ({
   selectedHole,
   setSelectedHole
 }) => {
-  const [startIndex, setStartIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -28,28 +27,6 @@ export const HoleControl: React.FC<HoleControlProps> = ({
     const timer = setInterval(() => setCurrentTime(new Date()), 10000);
     return () => clearInterval(timer);
   }, []);
-
-  // Re-calculate start index ONLY when hole changes to anchor the window around 'now'
-  useEffect(() => {
-    if (!tournamentInfo) return;
-    
-    const available = tournamentInfo.groups
-      .filter(g => !records.some(r => r.group === g.groupNumber && r.hole === selectedHole && r.type === TimerType.FLAG_IN))
-      .map(g => ({
-        group: g,
-        pace: calculateTargetTime(g.groupNumber, selectedHole, tournamentInfo)
-      }))
-      .sort((a, b) => a.pace.date.getTime() - b.pace.date.getTime());
-
-    if (available.length > 0) {
-      const nowMs = new Date().getTime();
-      const nextExpectedIdx = available.findIndex(g => g.pace.date.getTime() >= nowMs);
-      const pivotIdx = nextExpectedIdx === -1 ? Math.max(0, available.length - 1) : nextExpectedIdx;
-      setStartIndex(Math.max(0, pivotIdx - 1));
-    } else {
-      setStartIndex(0);
-    }
-  }, [selectedHole]);
 
   if (!tournamentInfo) {
     return (
@@ -89,32 +66,61 @@ export const HoleControl: React.FC<HoleControlProps> = ({
     setTimeout(() => setShowSuccess(false), 2000);
   };
 
-  // Format names compactly: "N. Lorriman"
-  const formatCompactName = (fullName: string) => {
-    if (!fullName) return '';
-    const parts = fullName.trim().split(' ');
-    if (parts.length <= 1) return fullName;
-    const lastName = parts[parts.length - 1];
-    const initial = parts[0][0];
-    return `${initial}. ${lastName}`;
+  // Format names to first 8 characters
+  const formatCompactName = (name: string) => {
+    if (!name) return '';
+    return name.substring(0, 8);
   };
 
-  // Get groups that haven't finished this hole yet
-  const availableGroups = tournamentInfo.groups
-    .filter(g => !records.some(r => r.group === g.groupNumber && r.hole === selectedHole && r.type === TimerType.FLAG_IN))
-    .map(g => ({
-      group: g,
-      pace: calculateTargetTime(g.groupNumber, selectedHole, tournamentInfo)
-    }))
-    .sort((a, b) => a.pace.date.getTime() - b.pace.date.getTime());
+  // Get groups that haven't finished this hole yet, 
+  // and only show groups that are "behind" (later than) the most recently finished group.
+  const availableGroups = (() => {
+    if (!tournamentInfo) return [];
+    
+    // 1. Get all groups that have recorded a Flag In on this hole
+    const finishedRecords = records.filter(r => 
+      r.hole === selectedHole && r.type === TimerType.FLAG_IN
+    );
+    
+    // 2. Find the "latest" finished group based on sequence/time
+    // Since groupNumber is usually sequential for pace, we find the max group number that finished.
+    // However, to be more robust, we look for the latest target time among finished groups.
+    let maxFinishedTime = 0;
+    finishedRecords.forEach(r => {
+      const target = calculateTargetTime(r.group, selectedHole, tournamentInfo);
+      if (target.date.getTime() > maxFinishedTime) {
+        maxFinishedTime = target.date.getTime();
+      }
+    });
+
+    return tournamentInfo.groups
+      .map(g => ({
+        group: g,
+        pace: calculateTargetTime(g.groupNumber, selectedHole, tournamentInfo)
+      }))
+      // Filter out:
+      // - Groups that have already recorded a Flag In
+      // - Groups that are "ahead" of someone who has already finished (unless the user wants to see slow/skipped groups - but request says "Only groups behind them")
+      .filter(gPace => {
+        const hasFinished = records.some(r => 
+          r.group === gPace.group.groupNumber && 
+          r.hole === selectedHole && 
+          r.type === TimerType.FLAG_IN
+        );
+        if (hasFinished) return false;
+        
+        // Only show if the group's expected finish is strictly after the latest finished group
+        return gPace.pace.date.getTime() >= maxFinishedTime;
+      })
+      .sort((a, b) => a.pace.date.getTime() - b.pace.date.getTime());
+  })();
 
   const nowMs = currentTime.getTime();
   const globalNextIdx = availableGroups.findIndex(g => g.pace.date.getTime() >= nowMs);
   
-  // Ensure start index is within valid bounds of current available groups
-  // We use current index-based slicing to ensure the list "moves up" when groups are removed
-  const validStartIndex = Math.max(0, Math.min(startIndex, Math.max(0, availableGroups.length - 1)));
-  const displayGroups = availableGroups.slice(validStartIndex, validStartIndex + 3);
+  // Pivot the window around the next expected group (showing up to 1 behind and 2 ahead if possible)
+  const pivotPoint = globalNextIdx === -1 ? Math.max(0, availableGroups.length - 3) : Math.max(0, globalNextIdx - 1);
+  const displayGroups = availableGroups.slice(pivotPoint, pivotPoint + 3);
 
   return (
     <div className="flex flex-col h-full bg-[#111] text-white">

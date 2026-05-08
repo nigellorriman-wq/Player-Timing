@@ -32,6 +32,7 @@ export interface GroupData {
   startTime: string; // "HH:MM"
   startingTee: number; // 1 or 10
   players: string[];
+  holeTimes?: Record<string, string>; // Map of hole number to target time string "HH:MM"
 }
 
 export interface TournamentInfo {

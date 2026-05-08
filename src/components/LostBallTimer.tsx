@@ -201,7 +201,7 @@ export default function LostBallTimer({
                   : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
               }`}
             >
-              {p}
+              {p.substring(0, 8)}
             </button>
           ))}
         </div>

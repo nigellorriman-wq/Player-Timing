@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Papa from 'papaparse';
-import { Upload, X, Check, FileText, Trophy, Calendar } from 'lucide-react';
+import { Upload, X, Check, FileText, Trophy, Calendar, FileType, Sparkles, Loader2 } from 'lucide-react';
 import { TournamentInfo, HolePace, GroupData } from '../types';
+import { GoogleGenAI, Type } from "@google/genai";
 
 interface TournamentSetupProps {
   onSetupComplete: (data: TournamentInfo) => void;
@@ -13,6 +14,9 @@ export const TournamentSetup: React.FC<TournamentSetupProps> = ({ onSetupComplet
   const [round, setRound] = useState(currentInfo?.round || '');
   const [paceData, setPaceData] = useState<HolePace[]>(currentInfo?.paceOfPlay || []);
   const [groups, setGroups] = useState<GroupData[]>(currentInfo?.groups || []);
+  const [isParsing, setIsParsing] = useState(false);
+
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
   const normalizeTime = (timeStr: string): string => {
     if (!timeStr) return "00:00";
@@ -81,12 +85,26 @@ export const TournamentSetup: React.FC<TournamentSetupProps> = ({ onSetupComplet
               const p2 = row['PLAYER 2'] || row.Player2 || row.player2;
               const p3 = row['PLAYER 3'] || row.Player3 || row.player3;
               const p4 = row['PLAYER 4'] || row.Player4 || row.player4;
+              
+              // Extract pre-calculated hole times (hole1, hole2, etc.)
+              const holeTimes: Record<string, string> = {};
+              Object.keys(row).forEach(key => {
+                const holeMatch = key.toLowerCase().match(/^hole\s*(\d+)$/);
+                if (holeMatch) {
+                  const hNum = holeMatch[1];
+                  const timeVal = row[key];
+                  if (timeVal) {
+                    holeTimes[hNum] = normalizeTime(String(timeVal));
+                  }
+                }
+              });
 
               return {
                 groupNumber: String(g),
                 startTime: normalizeTime(st),
                 startingTee: Number(tee),
-                players: [p1, p2, p3, p4].filter(p => p !== undefined && p !== null && String(p).trim() !== '') as string[]
+                players: [p1, p2, p3, p4].filter(p => p !== undefined && p !== null && String(p).trim() !== '') as string[],
+                holeTimes
               };
             });
           
@@ -97,6 +115,98 @@ export const TournamentSetup: React.FC<TournamentSetupProps> = ({ onSetupComplet
           }
         }
       });
+    }
+  };
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsParsing(true);
+    try {
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve) => {
+        reader.onload = () => {
+          const base64 = (reader.result as string).split(',')[1];
+          resolve(base64);
+        };
+      });
+      reader.readAsDataURL(file);
+      const base64Data = await base64Promise;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [
+          {
+            inlineData: {
+              mimeType: "application/pdf",
+              data: base64Data,
+            },
+          },
+          {
+            text: "Extract tournament information from this golf start list. Include tournament name, round number, group numbers, start times, starting tees, players (full names), and pace of play (minutes per hole for holes 1-18).",
+          },
+        ],
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              round: { type: Type.STRING },
+              paceOfPlay: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    hole: { type: Type.NUMBER },
+                    minutes: { type: Type.NUMBER },
+                  },
+                  required: ["hole", "minutes"],
+                },
+              },
+              groups: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    groupNumber: { type: Type.STRING },
+                    startTime: { type: Type.STRING },
+                    startingTee: { type: Type.NUMBER },
+                    players: {
+                      type: Type.ARRAY,
+                      items: { type: Type.STRING },
+                    },
+                    holeTimes: {
+                      type: Type.OBJECT,
+                      description: "Map of hole number (as string) to expected finish time (string HH:MM)",
+                      additionalProperties: { type: Type.STRING }
+                    }
+                  },
+                  required: ["groupNumber", "startTime", "players"],
+                },
+              },
+            },
+            required: ["name", "round", "paceOfPlay", "groups"],
+          },
+        },
+      });
+
+      const parsed = JSON.parse(response.text);
+      if (parsed.name) setName(parsed.name);
+      if (parsed.round) setRound(String(parsed.round));
+      if (parsed.paceOfPlay) setPaceData(parsed.paceOfPlay);
+      if (parsed.groups) {
+        setGroups(parsed.groups.map((g: any) => ({
+          ...g,
+          startTime: normalizeTime(g.startTime)
+        })));
+      }
+    } catch (error) {
+      console.error("PDF Parsing Error:", error);
+      alert("Failed to parse PDF. Please try again or use CSV imports.");
+    } finally {
+      setIsParsing(false);
     }
   };
 
@@ -132,6 +242,28 @@ export const TournamentSetup: React.FC<TournamentSetupProps> = ({ onSetupComplet
               className="w-full bg-transparent outline-none font-bold text-sm"
             />
           </div>
+        </div>
+
+        {/* PDF Import (New Option) */}
+        <div className={`p-4 rounded-xl border-2 border-dashed transition-all ${isParsing ? 'border-[#FFDD00] bg-[#FFDD00]/5' : (groups.length > 0 && paceData.length > 0 ? 'bg-green-950/20 border-green-900/50' : 'bg-zinc-900/30 border-zinc-800')}`}>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-xs font-bold flex items-center gap-2">
+              <Sparkles size={14} className="text-[#FFDD00]" /> AI PDF Import (Express Setup)
+            </label>
+            {groups.length > 0 && paceData.length > 0 && <Check size={14} className="text-green-500" />}
+          </div>
+          <p className="text-[10px] text-gray-500 mb-3">Upload a full start list PDF. Gemini will extract all info automatically.</p>
+          <label className={`flex items-center gap-2 px-4 py-2 bg-[#FFDD00] hover:bg-[#ffe533] transition-colors rounded text-[10px] font-black text-black cursor-pointer w-fit ${isParsing ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            {isParsing ? <Loader2 size={12} className="animate-spin" /> : <FileType size={12} />}
+            {isParsing ? 'Analyzing Document...' : 'Import from PDF'}
+            {!isParsing && <input type="file" accept=".pdf" onChange={handlePdfUpload} className="hidden" />}
+          </label>
+        </div>
+
+        <div className="flex items-center gap-2 py-2">
+          <div className="flex-1 h-[1px] bg-zinc-800"></div>
+          <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">OR USE CSV</span>
+          <div className="flex-1 h-[1px] bg-zinc-800"></div>
         </div>
 
         {/* CSV Imports */}
